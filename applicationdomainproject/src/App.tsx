@@ -11,7 +11,7 @@ function App() {
         <LoginScreen />
           </div>
       <p className="subtle-text">
-        Application Domain Projects
+        Application Domain Project
       </p>
     </>
   )
