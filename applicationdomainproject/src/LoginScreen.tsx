@@ -1,16 +1,15 @@
+import './App.css'
+import './index.css'
 function LoginScreen() {
     return (
         <section>
-            <h1>Login Screen</h1>
-                <p>
-                    <p>
-                        <h4>Username</h4>
-                            <input type="text" name="name" />
-                    </p>
-                <h4>Password</h4>
-
+            <h1>Application Domain</h1>
+            <p>
+                <h4>Username</h4>
                 <input type="text" name="name" />
-                </p>
+                <h4>Password</h4>
+                <input type="text" name="name" />
+            </p>
        </section>
 
   );
