@@ -17,7 +17,7 @@ function App() {
 
       </div>
       <p className="read-the-docs">
-        Test Application Domain Project
+        Application Domain Project
       </p>
     </>
   )
