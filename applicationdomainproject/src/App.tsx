@@ -9,10 +9,7 @@ function App() {
     <>
       <div>
         <LoginScreen />
-          </div>
-      <p className="subtle-text">
-        Application Domain Project
-      </p>
+        </div>
     </>
   )
 }
