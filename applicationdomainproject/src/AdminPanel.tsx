@@ -2,7 +2,6 @@ import { useState } from "react";
 import './App.css'
 import './index.css'
 import LoginScreen from "./LoginScreen"
-
 import BaseUser from "./User/BaseUser";
 import BasePassword from "./User/BasePassword";
 
@@ -25,7 +24,6 @@ const AdminPanel = () => {
     const [role, setRole] = useState<"admin" | "user" | "manager">("user");
     const [isActive, setIsActive] = useState<boolean>(true);
     const [editingUserId, setEditingUserId] = useState<string | null>(null); // Track the user being edited
-
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true); // Track login status
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -52,7 +50,6 @@ const AdminPanel = () => {
                 role,
                 isActive
             );
-
             setUsers([...users, newUser]);
         }
 
@@ -80,7 +77,6 @@ const AdminPanel = () => {
     };
 
     const toggleActive = (id: string) => {
-
         setUsers(
             users.map((user) =>
                 user.id === id ? { ...user, is_active: !user.is_active } : user
