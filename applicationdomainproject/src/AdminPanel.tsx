@@ -2,25 +2,18 @@ import { useState } from "react";
 import './App.css'
 import './index.css'
 import LoginScreen from "./LoginScreen"
+import BaseUser from "./User/BaseUser";
+import BasePassword from "./User/BasePassword";
+import React from "react";
 
-type User = {
-    id: number;
-    username: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    email: string;
-    role: "admin" | "user" | "manager";
-    is_active: boolean;
-};
+
 const AdminPanel = () => {
 
     //hardcoded data for users until backend is setup
-    const [users, setUsers] = useState<User[]>([
-        { id: 1, username: "adminUser", password: "adminPass", firstName: "Jane", lastName: "Smith", dateOfBirth: "1990-01-01", email: "email", role: "admin", is_active: true },
-        { id: 2, username: "regularUser", password: "userPass", firstName: "John", lastName: "Jones", dateOfBirth: "1990-01-01", email: "email", role: "user", is_active: true },
-        { id: 3, username: "modUser", password: "modPass", firstName: "Sammy", lastName: "James", dateOfBirth: "1990-01-01", email: "email", role: "manager", is_active: false },
+    const [users, setUsers] = useState<BaseUser[]>([
+        new BaseUser("1", "adminJoe", new BasePassword("adminpass"), "Joe", "Smith", "1985-04-10", "joe@example.com", "admin"),
+        new BaseUser("2", "sammyUser", new BasePassword("userpass"), "Sammy", "Smith", "1990-06-22", "sammy@example.com", "user"),
+        new BaseUser("3", "daleManager", new BasePassword("managerpass"), "Dale", "Jones", "1988-09-14", "dale@example.com", "manager"),
     ]);
 
     const [username, setUsername] = useState<string>("");
@@ -31,35 +24,33 @@ const AdminPanel = () => {
     const [email, setEmail] = useState<string>("")
     const [role, setRole] = useState<"admin" | "user" | "manager">("user");
     const [isActive, setIsActive] = useState<boolean>(true);
-    const [editingUserId, setEditingUserId] = useState<number | null>(null); // Track the user being edited
+    const [editingUserId, setEditingUserId] = useState<string | null>(null); // Track the user being edited
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true); // Track login status
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (editingUserId != null) {
-            // Edit an existing user. Would push data to database here
+        if (editingUserId) {
             setUsers(
                 users.map((user) =>
                     user.id === editingUserId
-                        ? { ...user, username, password, firstName, lastName, dateOfBirth, email, role, is_active: isActive }
+                        ? new BaseUser(user.id, username, new BasePassword(password), firstName, lastName, dateOfBirth, email, role, isActive)
                         : user
                 )
             );
-            setEditingUserId(null); // Reset editing mode
+            setEditingUserId(null);
         } else {
-            // Add new user
-            const newUser: User = {
-                id: users.length + 1, // Assuming the next id is sequential
+            const newUser = new BaseUser(
+                (users.length + 1).toString(),
                 username,
-                password,
+                new BasePassword(password),
                 firstName,
                 lastName,
                 dateOfBirth,
                 email,
                 role,
-                is_active: isActive,
-            };
+                isActive
+            );
             setUsers([...users, newUser]);
         }
 
@@ -74,19 +65,19 @@ const AdminPanel = () => {
         setIsActive(true);
     };
 
-    const handleEdit = (user: User) => {
+    const handleEdit = (user: BaseUser) => {
         setUsername(user.username);
-        setPassword(user.password);
+        setPassword(user.password.GetPassword());
         setFirstName(user.firstName);
         setLastName(user.lastName);
-        setDateOfBirth(user.dateOfBirth);
+        setDateOfBirth(user.dob);
         setEmail(user.email);
         setRole(user.role);
         setIsActive(user.is_active);
         setEditingUserId(user.id); // Set the user as being edited
     };
 
-    const toggleActive = (id: number) => {
+    const toggleActive = (id: string) => {
         setUsers(
             users.map((user) =>
                 user.id === id ? { ...user, is_active: !user.is_active } : user
@@ -209,10 +200,10 @@ const AdminPanel = () => {
                             {users.map((user) => (
                                 <tr key={user.id}>
                                     <td>{user.username}</td>
-                                    <td>{user.password}</td>
+                                    <td>{user.password.GetPassword()}</td>
                                     <td>{user.firstName}</td>
                                     <td>{user.lastName}</td>
-                                    <td>{user.dateOfBirth}</td>
+                                    <td>{user.dob}</td>
                                     <td>{user.email}</td>
                                     <td>{user.role}</td>
                                     <td>{user.is_active ? "Yes" : "No"}</td>
