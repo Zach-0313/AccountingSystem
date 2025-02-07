@@ -5,6 +5,7 @@ import './index.css'
 import AdminPanel from "./AdminPanel";
 import BaseUser from "./User/BaseUser";
 import BasePassword from "./User/BasePassword";
+import React from "react";
 
 export default function LoginScreen() {
     const [username, setUsername] = useState("");
@@ -21,8 +22,7 @@ export default function LoginScreen() {
     const handleLogin = () => {
         //compare to database here
         let potentialUser: BaseUser | undefined = users.find(anyUser => anyUser.username === username);
-        if (potentialUser && potentialUser.password.IsPassword(password))
-        {
+        if (potentialUser && potentialUser.password.IsPassword(password)) {
             setIsLoggedIn(true)
         }
         else {
@@ -33,56 +33,41 @@ export default function LoginScreen() {
     if (isLoggedIn) {
         return <AdminPanel />;
     }
-        return (
-            <section>
-                <h1>Application Domain</h1>
-                    <p>
-                        <p>
-                            <h4>Username</h4>
-                                <input
-                                    type="text"
-                                    placeholder="Username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                />
-                            <h4>Password</h4>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="Password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                        </p>
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={showPassword}
-                            onChange={() => setShowPassword(!showPassword)}
-                            />
-                        Show Password
-                    </label>
-                    {error && <p>{error}</p>}
-                    </p>
-                <input
-                    type="button"
-                    value="Login"
-                    onClick={handleLogin}
-                />
-            </section>
-        );
-function LoginScreen() {
     return (
         <section>
             <h1>Application Domain</h1>
             <p>
-                <h4>Username</h4>
-                <input type="text" name="name" />
-                <h4>Password</h4>
-                <input type="text" name="name" />
+                <p>
+                    <h4>Username</h4>
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <h4>Password</h4>
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </p>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={showPassword}
+                        onChange={() => setShowPassword(!showPassword)}
+                    />
+                    Show Password
+                </label>
+                {error && <p>{error}</p>}
             </p>
-       </section>
-
-  );
+            <input
+                type="button"
+                value="Login"
+                onClick={handleLogin}
+            />
+        </section>
+    );
 }
-
-export default LoginScreen;
