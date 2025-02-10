@@ -26,7 +26,7 @@ export default function LoginScreen() {
             setIsLoggedIn(true)
         }
         else {
-            setError("Invalid username or password");
+            setError("Wrong username or password");
         }
     };
 
