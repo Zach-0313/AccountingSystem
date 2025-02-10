@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import BasePassword from "./BasePassword";
 
 class BaseUser {
@@ -35,6 +36,38 @@ class BaseUser {
         this.role = role;
         this.is_active = is_active;
     }
+    /** Convert to JSON for storage */
+    public toJSON() {
+        return {
+            id: this.id,
+            username: this.username,
+            firstName: this.firstName,
+            lastName: this.lastName,
+            dob: this.dob,
+            email: this.email,
+            role: this.role,
+            is_active: this.is_active,
+            createdAt: this.createdAt,
+            dateOfBirth: this.dateOfBirth,
+            password: this.password.toJSON(), // Ensure password is serializable
+        };
+    }
+
+    /** Create a BaseUser instance from JSON */
+    public static fromJSON(json: any): BaseUser {
+        return new BaseUser(
+            json.id,
+            json.username,
+            BasePassword.fromJSON(json.password), // Recreate BasePassword instance
+            json.firstName,
+            json.lastName,
+            json.dob,
+            json.email,
+            json.role,
+            json.is_active
+        );
+    }
+
 }
 
 export default BaseUser;

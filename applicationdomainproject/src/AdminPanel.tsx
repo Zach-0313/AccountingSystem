@@ -4,7 +4,6 @@ import './index.css'
 import LoginScreen from "./LoginScreen"
 import BaseUser from "./User/BaseUser";
 import BasePassword from "./User/BasePassword";
-import React from "react";
 
 
 const AdminPanel = () => {
