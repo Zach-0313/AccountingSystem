@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 class BasePassword {
-    private password: string = "password";
-    private previousPasswords: string[] = [];
+    public password: string = "password";
+    public previousPasswords: string[] = [];
     public createdAt: Date | undefined;
     public expireOn: Date | undefined;
 
@@ -45,6 +46,26 @@ class BasePassword {
     public isExpired(): boolean {
         return this.expireOn ? new Date() > this.expireOn : false;
     }
+    /** Convert to JSON for storage */
+    public toJSON() {
+        return {
+            passwordSaved: this.password, // Consider hashing before saving
+            previousPasswords: this.previousPasswords,
+            createdAt: this.createdAt.toISOString(),
+            expireOn: this.expireOn ? this.expireOn.toISOString() : null,
+        };
+    }
+
+    /** Create a BasePassword instance from JSON */
+    public static fromJSON(json: any): BasePassword {
+        const basePassword = new BasePassword(json.passwordSaved);
+        basePassword.previousPasswords = Array.isArray(json.previousPasswords) ? json.previousPasswords : [];
+        basePassword.createdAt = json.createdAt ? new Date(json.createdAt) : new Date();
+        basePassword.expireOn = json.expireOn ? new Date(json.expireOn) : undefined;
+
+        return basePassword;
+    }
+
 
 }
 
