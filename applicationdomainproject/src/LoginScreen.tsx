@@ -53,7 +53,7 @@ export default function LoginScreen() {
 
         // Convert JSON to BaseUser objects
         let newUsers = res.data?.map(data => BaseUser.fromJSON(data.user)) || [];
-
+        
         // Remove duplicates based on `id`
         userData = [
             ...new Map([...userData, ...newUsers].map(user => [user.id, user])).values()
@@ -68,8 +68,8 @@ export default function LoginScreen() {
         console.log("Login Checking Against:", userData.length + " users");
 
         let potentialUser: BaseUser | undefined = userData.find(anyUser => anyUser.username === username);
-        console.log("Potential Login Username: " + potentialUser?.username);
-        console.log("Potential Login Password: " + potentialUser?.password.GetPassword());
+        console.log("Potential  Username: " + potentialUser?.username);
+        console.log("Potential dadasads Password: " + potentialUser?.password.GetPassword());
 
         if (potentialUser && potentialUser.password.IsPassword(password)) {
             setIsLoggedIn(true);
