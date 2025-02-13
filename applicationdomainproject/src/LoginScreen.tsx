@@ -69,7 +69,7 @@ export default function LoginScreen() {
 
         let potentialUser: BaseUser | undefined = userData.find(anyUser => anyUser.username === username);
         console.log("Potential  Username: " + potentialUser?.username);
-        console.log("Potential dadasads Password: " + potentialUser?.password.GetPassword());
+        console.log("Potential Password: " + potentialUser?.password.GetPassword());
 
         if (potentialUser && potentialUser.password.IsPassword(password)) {
             setIsLoggedIn(true);
