@@ -4,6 +4,9 @@ class BasePassword {
     public previousPasswords: string[] = [];
     public createdAt: Date | undefined;
     public expireOn: Date | undefined;
+    regexNum = new RegExp('^[1-9]d{0,2}$');
+    regexLetter = new RegExp(/[a-zA-Z]/g);
+    regexSpecial = new RegExp(/[ `!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/);
 
 
     constructor(
@@ -14,6 +17,39 @@ class BasePassword {
     }
     public GetPassword() {
         return this.password;
+    }
+    public createPassword(newPassword: string): boolean { // creates new password
+        this.password = newPassword;
+
+        // check password length
+        if (this.password.length < 8) {
+            console.warn("Password must be at least 8 characters long.");
+            return false;
+        }
+        // checks password for a number
+        else if (!this.regexNum.test(this.password)) {
+            console.warn("Password must contain a number");
+            return false;
+        }
+        // checks password for a letter
+        else if (!this.regexLetter.test(this.password)) {
+            console.warn("Password must contain a letter");
+            return false;
+        }
+        // makes sure password starts with letter
+        else if (!this.regexLetter.test(this.password[0])) {
+            console.warn("Password must start with a letter");
+            return false;
+        }
+        // check for special character
+        else if (!this.regexSpecial.test(this.password)) {
+            console.warn("Password must contain a special character");
+            return false;
+        }
+        else {
+            return true;
+        }
+
     }
     public changePassword(newPassword: string): boolean {
         if (this.IsPreviousPassword(newPassword)) {
