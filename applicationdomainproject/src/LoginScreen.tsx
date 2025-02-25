@@ -71,7 +71,7 @@ export default function LoginScreen() {
     return (
         <section>
             <Header label="Login" />
-            <h1>Application Domain</h1>
+            <h1>Owlight Financials</h1>
             <p>
                 <h4>Username</h4>
                 <input

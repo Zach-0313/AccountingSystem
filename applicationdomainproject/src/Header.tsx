@@ -1,3 +1,5 @@
+import logo from './assets/OwlightFinancialsLogo.png';
+
 const headerStyle = {
     position: "fixed" as 'fixed',
     top: 0,
@@ -20,7 +22,13 @@ const buttonStyle = {
     cursor: "pointer",
     borderRadius: "5px"
 };
-
+const styles = ({
+    tinyLogo: {
+        width: 75,
+        height: 75
+        ,
+    },
+});
 type HeaderProps = {
     label?: string;
     logout?: () => void; // The logout function passed from the parent component
@@ -30,6 +38,10 @@ const Header: React.FC<HeaderProps> = ({ label = "Default Header", logout }) => 
     return (
         <header style={headerStyle}>
             <h2>{label}</h2>
+            <img
+                style={styles.tinyLogo}
+                src={logo}
+            />
             {logout && <button onClick={logout} style={buttonStyle}>Logout</button>}
         </header>
     );
