@@ -4,7 +4,8 @@ import './index.css';
 import LoginScreen from "./LoginScreen";
 import BaseUser from "./User/BaseUser";
 import BasePassword from "./User/BasePassword";
-import {createClient} from "@supabase/supabase-js"; // Ensure you import Supabase client
+import { createClient } from "@supabase/supabase-js"; // Ensure you import Supabase client
+import Header from "./Header";
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
@@ -31,9 +32,9 @@ const AdminPanel = () => {
                 console.error("Error fetching users:", res.error);
                 return;
             }
-            
+
             const newUsers = res.data?.map(entry => BaseUser.fromJSON(entry.user)) || [];
-            
+
             // Ensure unique users using a Map
             setUsers(prevUsers => [
                 ...new Map([...prevUsers, ...newUsers].map(user => [user.id, user])).values()
@@ -96,7 +97,7 @@ const AdminPanel = () => {
         // Update Supabase
         const userToUpdate = users.find(user => user.id === id);
         if (userToUpdate) {
-            await supabase.from("User_Credentials").update({id: id}).match({id: id});
+            await supabase.from("User_Credentials").update({ id: id }).match({ id: id });
         }
     };
 
@@ -107,11 +108,7 @@ const AdminPanel = () => {
 
     return (
         <div>
-            {/* Header */}
-            <header style={headerStyle}>
-                <h2>Admin Panel</h2>
-                {isLoggedIn && <button onClick={handleLogout} style={buttonStyle}>Logout</button>}
-            </header>
+            <Header label="Admin Panel" logout={handleLogout}/>
 
             {isLoggedIn ? (
                 <>

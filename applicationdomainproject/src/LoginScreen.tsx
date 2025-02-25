@@ -1,17 +1,11 @@
 /* eslint-disable prefer-const */
 import { useState, useEffect } from "react";
-import './App.css'
-import './index.css'
+import './App.css';
+import './index.css';
 import AdminPanel from "./AdminPanel";
 import BaseUser from "./User/BaseUser";
-import BasePassword from "./User/BasePassword";
-import React from "react";
-import { createClient } from "@supabase/supabase-js";
-
-// Supabase setup
-const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import Header from "./Header";
+import UserManager from "./User/UserManager";
 
 export default function LoginScreen() {
 
@@ -21,14 +15,20 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [serverStatus, setServerStatus] = useState<"Connected" | "Disconnected" | "Checking...">("Checking...");
-    let userData: BaseUser[] = []; 
 
-    // Check if the server is connected
+    const {
+        users, // Users are fetched from UserManager
+        loading,
+        error: userManagerError
+    } = UserManager();
+
+    // Check if the server is connected by waiting for user data to be loaded
     useEffect(() => {
         const checkServerConnection = async () => {
             try {
-                const { error } = await supabase.from("User_Credentials").select("id").limit(1);
-                if (error) {
+                if (loading) {
+                    setServerStatus("Checking...");
+                } else if (userManagerError) {
                     setServerStatus("Disconnected");
                 } else {
                     setServerStatus("Connected");
@@ -38,38 +38,23 @@ export default function LoginScreen() {
             }
         };
         checkServerConnection();
-    }, []);
-
-    // Fetch users from database
-    const getUserTable = async () => {
-        const res = await supabase.from("User_Credentials").select("user");
-
-        if (res.error) {
-            console.error("Error fetching data:", res.error);
-            return;
-        }
-
-        console.log(res);
-
-        // Convert JSON to BaseUser objects
-        let newUsers = res.data?.map(data => BaseUser.fromJSON(data.user)) || [];
-        
-        // Remove duplicates based on `id`
-        userData = [
-            ...new Map([...userData, ...newUsers].map(user => [user.id, user])).values()
-        ];
-
-        console.log("Unique User Count:", userData.length);
-    }
+    }, [loading, userManagerError]);
 
     // Handle Login
     const handleLogin = async () => {
-        await getUserTable();
-        console.log("Login Checking Against:", userData.length + " users");
+        if (!users || users.length === 0) {
+            setError("No users found in the database.");
+            return;
+        }
 
-        let potentialUser: BaseUser | undefined = userData.find(anyUser => anyUser.username === username);
-        console.log("Potential  Username: " + potentialUser?.username);
-        console.log("Potential dadasads Password: " + potentialUser?.password.GetPassword());
+        console.log("Login Checking Against:", users.length + " users");
+
+        let potentialUser: BaseUser | undefined = users.find(
+            (anyUser) => anyUser.username === username
+        );
+
+        console.log("Potential Username: " + potentialUser?.username);
+        console.log("Potential Password: " + potentialUser?.password.GetPassword());
 
         if (potentialUser && potentialUser.password.IsPassword(password)) {
             setIsLoggedIn(true);
@@ -79,11 +64,13 @@ export default function LoginScreen() {
     };
 
     if (isLoggedIn) {
+        console.log("Logging in to ADMIN");
         return <AdminPanel />;
     }
 
     return (
         <section>
+            <Header label="Login" />
             <h1>Application Domain</h1>
             <p>
                 <h4>Username</h4>
