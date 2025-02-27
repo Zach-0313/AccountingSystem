@@ -57,7 +57,10 @@ export default function LoginScreen() {
         console.log("Potential Password: " + potentialUser?.password.GetPassword());
 
         if (potentialUser && potentialUser.password.IsPassword(password)) {
-            setIsLoggedIn(true);
+            if (potentialUser.is_active) {
+                setIsLoggedIn(true);
+            }
+            else setError("User is deactivated");
         } else {
             setError("Invalid username or password");
         }
