@@ -57,6 +57,10 @@ export default function LoginScreen() {
         console.log("Potential Password: " + potentialUser?.password.GetPassword());
 
         if (potentialUser && potentialUser.password.IsPassword(password)) {
+            if (potentialUser.password.isExpired()) {
+                alert("Password is Expired");
+                setError("Expired Password");
+            }
             if (potentialUser.is_active) {
                 setIsLoggedIn(true);
             }
