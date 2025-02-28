@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import './App.css';
 import './index.css';
 import AdminPanel from "./AdminPanel";
+import AdminHub from "./AdminHub";
+
 import BaseUser from "./User/BaseUser";
 import Header from "./Header";
 import UserManager from "./User/UserManager";
@@ -72,7 +74,7 @@ export default function LoginScreen() {
 
     if (isLoggedIn) {
         console.log("Logging in to ADMIN");
-        return <AdminPanel />;
+        return <AdminHub />;
     }
 
     return (
@@ -95,6 +97,7 @@ export default function LoginScreen() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
             </p>
+            <p>
             <label>
                 <input
                     type="checkbox"
@@ -103,6 +106,7 @@ export default function LoginScreen() {
                 />
                 Show Password
             </label>
+            </p>
             {error && <p style={{ color: "red" }}>{error}</p>}
             <input
                 type="button"
