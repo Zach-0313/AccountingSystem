@@ -51,7 +51,7 @@ const AccountTable = () => {
 
     return (
         <div className="container">
-            <Header label="Admin Panel" logout={handleLogout} />
+            <Header label="Account View" logout={handleLogout} />
 
             <h1>Accounts</h1>
             <table>
