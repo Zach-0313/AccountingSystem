@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import './App.css';
 import './index.css';
-import AdminPanel from "./AdminPanel";
 import AdminHub from "./AdminHub";
+import AccountView from './AccountView.tsx'
 
 import BaseUser from "./User/BaseUser";
 import Header from "./Header";
@@ -16,6 +16,8 @@ export default function LoginScreen() {
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+
     const [serverStatus, setServerStatus] = useState<"Connected" | "Disconnected" | "Checking...">("Checking...");
 
     const {
@@ -65,6 +67,9 @@ export default function LoginScreen() {
             }
             if (potentialUser.is_active) {
                 setIsLoggedIn(true);
+                if (potentialUser.role == "admin") {
+                    setIsAdmin(true);
+                }
             }
             else setError("User is deactivated");
         } else {
@@ -73,15 +78,18 @@ export default function LoginScreen() {
     };
 
     if (isLoggedIn) {
-        console.log("Logging in to ADMIN");
-        return <AdminHub />;
+        if (isAdmin) {
+            console.log("Logging in to ADMIN");
+            return <AdminHub />;
+        }
+        return <AccountView />;
     }
 
-    return (
+    return ( 
         <section>
             <Header label="Login" />
             <h1>Owlight Financials</h1>
-            <p>
+            <p> 
                 <h4>Username</h4>
                 <input
                     type="text"
