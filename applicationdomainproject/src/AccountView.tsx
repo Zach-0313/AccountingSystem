@@ -50,7 +50,10 @@ const AccountTable = () => {
                     <tr>
                         <th>Account Name</th>
                         <th>Account Number</th>
+                        <th>Description</th>
                         <th>Category</th>
+                        <th>Debit</th>
+                        <th>Credit</th>
                         <th>Balance</th>
                         <th>Action</th>
                     </tr>
@@ -60,7 +63,10 @@ const AccountTable = () => {
                         <tr key={account.id}>
                             <td>{account.account_name}</td>
                             <td>{account.account_number}</td>
+                            <td>{account.account_description}</td>
                             <td>{account.account_catagory}</td>
+                            <td>{account.debit}</td>
+                            <td>{account.credit}</td>
                             <td>{account.balance}</td>
                             <td>
                                 <Link to={`/accounts/${account.id}`} className="view-button">View</Link>
