@@ -117,8 +117,9 @@ const AccountDetail = () => {
     return (
         <div className="container">
             <h1>Account Details</h1>
+
             {Object.entries(account).map(([key, value]) => (
-                <p key={key}><strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {String(value)}</p>
+                <p key={key}>{key.charAt(0).toUpperCase() + key.slice(1)}: {String(value)}</p>
             ))}
             <button onClick={() => navigate(-1)} className="view-button">Back to Accounts</button>
         </div>
