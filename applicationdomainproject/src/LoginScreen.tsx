@@ -1,4 +1,6 @@
 /* eslint-disable prefer-const */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState, useEffect } from "react";
 import './App.css'
 import './index.css'
@@ -7,6 +9,8 @@ import BaseUser from "./User/BaseUser";
 import BasePassword from "./User/BasePassword";
 import React from "react";
 import { createClient } from "@supabase/supabase-js";
+import bcrypt from 'bcryptjs';
+
 
 // Supabase setup
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
@@ -21,7 +25,7 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [serverStatus, setServerStatus] = useState<"Connected" | "Disconnected" | "Checking...">("Checking...");
-    let userData: BaseUser[] = []; 
+    let userData: BaseUser[] = [];
 
     // Check if the server is connected
     useEffect(() => {
@@ -53,7 +57,7 @@ export default function LoginScreen() {
 
         // Convert JSON to BaseUser objects
         let newUsers = res.data?.map(data => BaseUser.fromJSON(data.user)) || [];
-        
+
         // Remove duplicates based on `id`
         userData = [
             ...new Map([...userData, ...newUsers].map(user => [user.id, user])).values()
@@ -65,17 +69,81 @@ export default function LoginScreen() {
     // Handle Login
     const handleLogin = async () => {
         await getUserTable();
-        console.log("Login Checking Against:", userData.length + " users");
 
-        let potentialUser: BaseUser | undefined = userData.find(anyUser => anyUser.username === username);
-        console.log("Potential  Username: " + potentialUser?.username);
-        console.log("Potential dadasads Password: " + potentialUser?.password.GetPassword());
+            async function authenticateUser(username: string | undefined, password: string | undefined) {
+                // Fetch user by username
+                const { data: users, error } = await supabase
+                    .from('User_Credentials')
+                    .select('*')
+                    .eq('username', username)
+                    .limit(1);
 
-        if (potentialUser && potentialUser.password.IsPassword(password)) {
-            setIsLoggedIn(true);
-        } else {
-            setError("Invalid username or password");
+                console.log('Fetched user:', users, 'Error:', error);
+
+                if (error || !users || users.length === 0) {
+                    console.error('User not found or error fetching user:', error);
+                    throw new Error ('Invalid credentials.');
+                    setError("Invalid username and password");
+                }
+                else {
+                    setIsLoggedIn(true);
+                }
+
+                const user = users[0];
+
+                // Check if account is suspended
+                if (user.suspended_until && new Date(user.suspended_until) > new Date()) {
+                    throw new Error('Account is suspended. Please try again later.');
+                }
+
+                // Debug password comparison
+                console.log('Entered password:', password);
+                console.log('Stored password hash:', user.password_hash);
+
+                // Verify password
+                const isPasswordValid = await bcrypt.compare(password as string, user.password_hash);
+                console.log('Password validation result:', isPasswordValid);
+
+                if (!isPasswordValid) {
+                    await handleFailedLogin(user);
+                    throw new Error('Invalid credentials.');
+                }
+
+                // Reset failed attempts on successful login
+                await resetFailedAttempts(user.id);
+
+                console.log('Login successful for user:', username);
+                return user;
+
+
         }
+
+        async function handleFailedLogin(user: any) {
+            const updatedAttempts = user.failed_attempts + 1;
+
+            if (updatedAttempts >= 3) {
+                const suspensionDuration = 1 * 60 * 1000; // 1 minute for testing purposes
+                const suspendedUntil = new Date(Date.now() + suspensionDuration).toISOString();
+                await supabase
+                    .from('users')
+                    .update({ failed_attempts: 0, suspended_until: suspendedUntil })
+                    .eq('id', user.id);
+            } else {
+                await supabase
+                    .from('users')
+                    .update({ failed_attempts: updatedAttempts })
+                    .eq('id', user.id);
+            }
+        }
+
+        async function resetFailedAttempts(userId: string) {
+            await supabase
+                .from('users')
+                .update({ failed_attempts: 0, suspended_until: null })
+                .eq('id', userId);
+        }
+
+
     };
 
     if (isLoggedIn) {

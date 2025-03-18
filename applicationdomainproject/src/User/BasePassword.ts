@@ -102,7 +102,6 @@ class BasePassword {
         return basePassword;
     }
 
-
 }
 
 export default BasePassword;
