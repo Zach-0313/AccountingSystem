@@ -122,7 +122,7 @@ export default function LoginScreen() {
                 onClick={handleLogin}
             />
 
-            {/* Server Connection Status */}
+            {/* Server Connection Status */}//hello
             <p style={{ marginTop: "10px", fontWeight: "bold", color: serverStatus === "Connected" ? "green" : "red" }}>
                 Server Status: {serverStatus}
             </p>
