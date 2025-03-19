@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 import "./App.css";
-import LoginScreen from "./LoginScreen";
 import Header from "./Header";
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
@@ -29,8 +28,8 @@ interface Account {
     comment: string;
 }
 
-const AccountTable = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+export default function AccountView() {
+
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
 
@@ -150,64 +149,5 @@ const AccountTable = () => {
             </table>
         </div>
     );
-};
-
-
-const AccountDetail = () => {
-    const { id } = useParams<{ id: string }>();
-    const [account, setAccount] = useState<Account | null>(null);
-    const [loading, setLoading] = useState<boolean>(true); // Add loading state
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchAccount = async () => {
-            if (!id) return;
-            const { data, error } = await supabase
-                .from("Chart_Of_Accounts") // Ensure table name is correct
-                .select("*")
-                .eq("id", id)
-                .single();
-
-            if (error) {
-                console.error("Error fetching account:", error);
-                setLoading(false);  // Stop loading if there's an error
-            } else {
-                console.log("Fetched account data:", data);
-                setAccount(data);
-                setLoading(false);  // Stop loading after data is set
-            }
-        };
-        fetchAccount();
-    }, [id]);
-
-    if (loading) {
-        return <p>Loading...</p>;  // Show loading state while data is being fetched
-    }
-
-    if (!account) {
-        return <p>Account not found</p>; // Display if no account found
-    }
-
-    return (
-        <div className="container">
-            <h1>Account Details</h1>
-
-            {Object.entries(account).map(([key, value]) => (
-                <p key={key}>{key.charAt(0).toUpperCase() + key.slice(1)}: {String(value)}</p>
-            ))}
-            <button onClick={() => navigate(-1)} className="view-button">Back to Accounts</button>
-        </div>
-    );
-};
-
-const AccountView = () => {
-    return (
-        <Routes>
-            <Route path="/" element={<AccountTable />} />
-            <Route path=":id" element={<AccountDetail />} />
-        </Routes>
-    );
-};
-
-export default AccountView;
+}
 
