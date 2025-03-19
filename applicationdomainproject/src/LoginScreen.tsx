@@ -85,45 +85,48 @@ export default function LoginScreen() {
         return <AccountView />;
     }
 
-    return ( 
+    return (
         <section>
             <Header label="Login" />
             <h1>Owlight Financials</h1>
-            <p> 
-                <h4>Username</h4>
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
-                <h4>Password</h4>
-                <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-            </p>
-            <p>
-            <label>
-                <input
-                    type="checkbox"
-                    checked={showPassword}
-                    onChange={() => setShowPassword(!showPassword)}
-                />
-                Show Password
-            </label>
-            </p>
-            {error && <p style={{ color: "red" }}>{error}</p>}
+
+            <div className="input-container">
+            <h4>Username</h4>
             <input
-                type="button"
-                value="Login"
-                onClick={handleLogin}
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
             />
 
+            <h4>Password</h4>
+            <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+            />
+            </div>
+            {/* Show Password Checkbox */}
+            <p>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={showPassword}
+                        onChange={() => setShowPassword(!showPassword)}
+                    />
+                    Show Password
+                </label>
+            </p>
+
+            {/* Error Message */}
+            {error && <p className="error">{error}</p>}
+
+            {/* Login Button */}
+            <input type="button" value="Login" onClick={handleLogin} />
+
             {/* Server Connection Status */}
-            <p style={{ marginTop: "10px", fontWeight: "bold", color: serverStatus === "Connected" ? "green" : "red" }}>
+            <p className={`server-status ${serverStatus === "Connected" ? "connected" : "disconnected"}`}>
                 Server Status: {serverStatus}
             </p>
         </section>
