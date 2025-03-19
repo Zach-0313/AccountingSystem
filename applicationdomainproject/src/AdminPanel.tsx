@@ -155,7 +155,7 @@ const AdminPanel = () => {
                 </Link>
 
                 </>
-            )
+            
         </div>
     );
 };
