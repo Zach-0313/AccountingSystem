@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 import "./App.css";
 import Header from "./Header";
+import AccountsNavbar from "./AccountsNavbar";
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
@@ -94,6 +95,7 @@ export default function AccountView() {
     return (
         <div className="container">
             <Header label="Account View" />
+            <AccountsNavbar/>
             <h1>Accounts</h1>
 
             {/* Search and Filter Inputs */}

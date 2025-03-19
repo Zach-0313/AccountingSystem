@@ -4,15 +4,17 @@ import AdminHub from "./AdminHub";
 import AccountView from "./AccountView";
 import AdminPanel from "./AdminPanel";
 import AccountViewPage from "./AccountViewPage";
+import AccountsJournalizing from "./AccountsJournalizing";
 export default function AppRoutes() {
     return (
         <Router>
             <Routes>
                 <Route path="/" element={<LoginScreen />} />
                 <Route path="/admin" element={<AdminHub />} />
-                <Route path="/accounts" element={<AccountView />} />
                 <Route path="/admin/usermanagement" element={<AdminPanel />} />
-                <Route path="/accounts/:id" element={<AccountViewPage />} /> {/* New route for Account View Page */}
+                <Route path="/accounts" element={<AccountView />} />
+                <Route path="/accounts/journalizing" element={<AccountsJournalizing />} />
+                <Route path="/accounts/:id" element={<AccountViewPage />} />
 
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>

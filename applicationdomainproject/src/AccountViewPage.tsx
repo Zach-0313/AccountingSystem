@@ -53,7 +53,7 @@ const AccountViewPage = () => {
 
     return (
         <div className="container">
-            <h1>Account {account.id} Details</h1>
+            <h1>Account {account.account_number} Details</h1>
             <form>
                 <div>
                     <label>Account Name:</label>
