@@ -31,8 +31,16 @@ interface Account {
 
 const AccountTable = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
-
     const [accounts, setAccounts] = useState<Account[]>([]);
+    const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
+
+    // Filter states
+    const [accountName, setAccountName] = useState<string>("");
+    const [category, setCategory] = useState<string>("");
+    const [subcategory, setSubcategory] = useState<string>("");
+    const [minAmount, setMinAmount] = useState<number | "">("");
+    const [maxAmount, setMaxAmount] = useState<number | "">("");
+    const [searchQuery, setSearchQuery] = useState<string>(""); // Search field
 
     useEffect(() => {
         const fetchAccounts = async () => {
@@ -41,34 +49,87 @@ const AccountTable = () => {
                 console.error("Error fetching accounts:", error);
             } else {
                 setAccounts(data || []);
+                setFilteredAccounts(data || []);
             }
         };
         fetchAccounts();
     }, []);
-    const handleLogout = () => setIsLoggedIn(false);
 
+    useEffect(() => {
+        let filtered = accounts;
+
+        if (accountName) {
+            filtered = filtered.filter(account =>
+                account.account_name.toLowerCase().includes(accountName.toLowerCase())
+            );
+        }
+        if (category) {
+            filtered = filtered.filter(account =>
+                account.account_catagory.toLowerCase().includes(category.toLowerCase())
+            );
+        }
+        if (subcategory) {
+            filtered = filtered.filter(account =>
+                account.account_subcatagory.toLowerCase().includes(subcategory.toLowerCase())
+            );
+        }
+        if (minAmount !== "") {
+            filtered = filtered.filter(account => account.balance >= Number(minAmount));
+        }
+        if (maxAmount !== "") {
+            filtered = filtered.filter(account => account.balance <= Number(maxAmount));
+        }
+
+        // Search by account name or account number
+        if (searchQuery) {
+            filtered = filtered.filter(account =>
+                account.account_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                account.account_number.toString().includes(searchQuery)
+            );
+        }
+
+        setFilteredAccounts(filtered);
+    }, [accountName, category, subcategory, minAmount, maxAmount, searchQuery, accounts]);
+
+    const handleLogout = () => setIsLoggedIn(false);
     if (!isLoggedIn) return <LoginScreen />;
 
     return (
         <div className="container">
             <Header label="Account View" logout={handleLogout} />
-
             <h1>Accounts</h1>
+
+            {/* Search and Filter Inputs */}
+            <div className="filters">
+                <input
+                    type="text"
+                    placeholder="Search by Name or Number"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <input type="text" placeholder="Account Name" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
+                <input type="text" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
+                <input type="text" placeholder="Subcategory" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} />
+                <input type="number" placeholder="Min Amount" value={minAmount} onChange={(e) => setMinAmount(e.target.value ? Number(e.target.value) : "")} />
+                <input type="number" placeholder="Max Amount" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value ? Number(e.target.value) : "")} />
+            </div>
+
             <table>
                 <thead>
-                    <tr>
-                        <th>Account Name</th>
-                        <th>Account Number</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th>Debit</th>
-                        <th>Credit</th>
-                        <th>Balance</th>
-                        <th>Action</th>
-                    </tr>
+                <tr>
+                    <th>Account Name</th>
+                    <th>Account Number</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {accounts.map((account) => (
+                {filteredAccounts.length > 0 ? (
+                    filteredAccounts.map((account) => (
                         <tr key={account.id}>
                             <td>{account.account_name}</td>
                             <td>{account.account_number}</td>
@@ -81,12 +142,18 @@ const AccountTable = () => {
                                 <Link to={`/accounts/${account.id}`} className="view-button">View</Link>
                             </td>
                         </tr>
-                    ))}
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan={8} style={{ textAlign: "center" }}>No accounts found</td>
+                    </tr>
+                )}
                 </tbody>
             </table>
         </div>
     );
 };
+
 
 const AccountDetail = () => {
     const { id } = useParams<{ id: string }>();
