@@ -87,7 +87,6 @@ const AccountTable = () => {
                 account.account_number.toString().includes(searchQuery)
             );
         }
-
         setFilteredAccounts(filtered);
     }, [accountName, category, subcategory, minAmount, maxAmount, searchQuery, accounts]);
 
