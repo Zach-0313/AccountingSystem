@@ -1,11 +1,11 @@
 ﻿import { useState, useEffect } from "react";
 import './App.css';
 import './index.css';
-import LoginScreen from "./LoginScreen";
 import BaseUser from "./User/BaseUser";
 import BasePassword from "./User/BasePassword";
 import { createClient } from "@supabase/supabase-js"; // Ensure you import Supabase client
 import Header from "./Header";
+import { Link } from "react-router-dom";
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
@@ -22,7 +22,7 @@ const AdminPanel = () => {
     const [role, setRole] = useState<"admin" | "user" | "manager">("user");
     const [isActive, setIsActive] = useState<boolean>(true);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+
 
     // 🔹 Fetch Users from Supabase on Mount
     useEffect(() => {
@@ -101,16 +101,9 @@ const AdminPanel = () => {
         }
     };
 
-    // 🔹 Handle Logout
-    const handleLogout = () => setIsLoggedIn(false);
-
-    if (!isLoggedIn) return <LoginScreen />;
-
     return (
         <div>
-            <Header label="Admin Panel" logout={handleLogout}/>
-
-            {isLoggedIn ? (
+            <Header label="User Management" />
                 <>
                     {/* Form */}
                     <form onSubmit={handleSubmit} style={formStyle}>
@@ -157,15 +150,16 @@ const AdminPanel = () => {
                             ))}
                         </tbody>
                     </table>
+                <Link to="/admin">
+                    <button style={buttonStyle}>Back to Admin Hub</button>
+                </Link>
+
                 </>
-            ) : (
-                <h2>You have been logged out. Please log in again.</h2>
-            )}
+            
         </div>
     );
 };
 
-const headerStyle = { position: "fixed" as 'fixed', top: 0, left: 0, width: "100%", padding: "10px", backgroundColor: "#333", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1000 };
 const buttonStyle = { backgroundColor: "#e44d26", color: "white", border: "none", padding: "10px 20px", cursor: "pointer", borderRadius: "5px" };
 const formStyle = { marginTop: "60px", marginBottom: "20px" };
 

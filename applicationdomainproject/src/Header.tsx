@@ -1,4 +1,5 @@
 import logo from './assets/OwlightFinancialsLogo.png';
+import { Link } from 'react-router-dom'; // Import Link from react-router-dom
 
 const headerStyle = {
     position: "fixed" as 'fixed',
@@ -31,18 +32,24 @@ const styles = ({
 });
 type HeaderProps = {
     label?: string;
-    logout?: () => void; // The logout function passed from the parent component
 };
 
 const Header: React.FC<HeaderProps> = ({ label = "Default Header", logout }) => {
     return (
         <header style={headerStyle}>
             <h2>{label}</h2>
-            <img
-                style={styles.tinyLogo}
-                src={logo}
-            />
-            {logout && <button onClick={logout} style={buttonStyle}>Logout</button>}
+            <Link to="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+                <img
+                    style={styles.tinyLogo}
+                    src={logo}
+                    alt="Owlight Financials Logo"
+                />
+            </Link>
+            {(
+                <Link to="/" style={{ textDecoration: "none" }}>
+                    <button style={buttonStyle}>Logout</button>
+                </Link>
+            )}
         </header>
     );
 };

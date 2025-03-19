@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 import "./App.css";
 import LoginScreen from "./LoginScreen";
 import Header from "./Header";
@@ -90,12 +90,11 @@ const AccountTable = () => {
         setFilteredAccounts(filtered);
     }, [accountName, category, subcategory, minAmount, maxAmount, searchQuery, accounts]);
 
-    const handleLogout = () => setIsLoggedIn(false);
-    if (!isLoggedIn) return <LoginScreen />;
+ 
 
     return (
         <div className="container">
-            <Header label="Account View" logout={handleLogout} />
+            <Header label="Account View" />
             <h1>Accounts</h1>
 
             {/* Search and Filter Inputs */}
@@ -203,12 +202,10 @@ const AccountDetail = () => {
 
 const AccountView = () => {
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<AccountTable />} />
-                <Route path="/accounts/:id" element={<AccountDetail />} />
-            </Routes>
-        </Router>
+        <Routes>
+            <Route path="/" element={<AccountTable />} />
+            <Route path=":id" element={<AccountDetail />} />
+        </Routes>
     );
 };
 
