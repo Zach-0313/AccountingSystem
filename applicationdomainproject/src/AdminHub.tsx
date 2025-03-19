@@ -1,26 +1,13 @@
-import AdminPanel from "./AdminPanel";
 import Header from "./Header";
-import LoginScreen from "./LoginScreen";
-import { useState, useEffect } from "react";
-
+import { Link } from 'react-router-dom';
 const AdminHub = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
-    const [gotoUserManager, setgotoUserManager] = useState<boolean>(false);
-
-    const handleLogout = () => setIsLoggedIn(false);
-    const handleUserManager = () => setgotoUserManager(true);
-
-    if (!isLoggedIn) return <LoginScreen />;
-        if(gotoUserManager) return <AdminPanel/>
         return (
             <div>
-                <Header label="Admin Hub" logout={handleLogout} />
+                <Header label="Admin Hub"/>
                 <h4>User Management</h4>
-                <input
-                    type="button"
-                    value="User Management"
-                    onClick={handleUserManager}
-                />
+                <Link to="/admin/UserManagement" style={{ textDecoration: "none" }}>
+                    <button>User Management</button>
+                </Link>
             </div>
         );
     

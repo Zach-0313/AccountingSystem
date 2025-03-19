@@ -1,15 +1,6 @@
-import './App.css'
-import LoginScreen from './LoginScreen.tsx'
+import React from "react";
+import AppRoutes from "./Routes";
 
-function App() {
-
-  return (
-    <>
-      <div>
-        <LoginScreen />
-        </div>
-    </>
-  )
+export default function App() {
+    return <AppRoutes />;
 }
-
-export default App

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 import "./App.css";
-import LoginScreen from "./LoginScreen";
 import Header from "./Header";
+import AccountsNavbar from "./AccountsNavbar";
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
@@ -29,8 +29,8 @@ interface Account {
     comment: string;
 }
 
-const AccountTable = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+export default function AccountView() {
+
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
 
@@ -90,12 +90,12 @@ const AccountTable = () => {
         setFilteredAccounts(filtered);
     }, [accountName, category, subcategory, minAmount, maxAmount, searchQuery, accounts]);
 
-    const handleLogout = () => setIsLoggedIn(false);
-    if (!isLoggedIn) return <LoginScreen />;
+ 
 
     return (
         <div className="container">
-            <Header label="Account View" logout={handleLogout} />
+            <Header label="Account View" />
+            <AccountsNavbar/>
             <h1>Accounts</h1>
 
             {/* Search and Filter Inputs */}
@@ -151,66 +151,5 @@ const AccountTable = () => {
             </table>
         </div>
     );
-};
-
-
-const AccountDetail = () => {
-    const { id } = useParams<{ id: string }>();
-    const [account, setAccount] = useState<Account | null>(null);
-    const [loading, setLoading] = useState<boolean>(true); // Add loading state
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchAccount = async () => {
-            if (!id) return;
-            const { data, error } = await supabase
-                .from("Chart_Of_Accounts") // Ensure table name is correct
-                .select("*")
-                .eq("id", id)
-                .single();
-
-            if (error) {
-                console.error("Error fetching account:", error);
-                setLoading(false);  // Stop loading if there's an error
-            } else {
-                console.log("Fetched account data:", data);
-                setAccount(data);
-                setLoading(false);  // Stop loading after data is set
-            }
-        };
-        fetchAccount();
-    }, [id]);
-
-    if (loading) {
-        return <p>Loading...</p>;  // Show loading state while data is being fetched
-    }
-
-    if (!account) {
-        return <p>Account not found</p>; // Display if no account found
-    }
-
-    return (
-        <div className="container">
-            <h1>Account Details</h1>
-
-            {Object.entries(account).map(([key, value]) => (
-                <p key={key}>{key.charAt(0).toUpperCase() + key.slice(1)}: {String(value)}</p>
-            ))}
-            <button onClick={() => navigate(-1)} className="view-button">Back to Accounts</button>
-        </div>
-    );
-};
-
-const AccountView = () => {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<AccountTable />} />
-                <Route path="/accounts/:id" element={<AccountDetail />} />
-            </Routes>
-        </Router>
-    );
-};
-
-export default AccountView;
+}
 

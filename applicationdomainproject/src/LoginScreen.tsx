@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import './App.css';
 import './index.css';
-import AdminHub from "./AdminHub";
-import AccountView from './AccountView.tsx'
-
+import { useNavigate } from "react-router-dom";
 import BaseUser from "./User/BaseUser";
 import Header from "./Header";
 import UserManager from "./User/UserManager";
@@ -15,8 +13,8 @@ export default function LoginScreen() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
+
+    const navigate = useNavigate();
 
     const [serverStatus, setServerStatus] = useState<"Connected" | "Disconnected" | "Checking...">("Checking...");
 
@@ -64,69 +62,55 @@ export default function LoginScreen() {
             if (potentialUser.password.isExpired()) {
                 alert("Password is Expired");
                 setError("Expired Password");
+                return;
             }
             if (potentialUser.is_active) {
-                setIsLoggedIn(true);
-                if (potentialUser.role == "admin") {
-                    setIsAdmin(true);
+                if (potentialUser.role === "admin") {
+                    navigate("/admin");
+                } else {
+                    navigate("/accounts");
                 }
+            } else {
+                setError("User is deactivated");
             }
-            else setError("User is deactivated");
         } else {
             setError("Invalid username or password");
         }
     };
 
-    if (isLoggedIn) {
-        if (isAdmin) {
-            console.log("Logging in to ADMIN");
-            return <AdminHub />;
-        }
-        return <AccountView />;
-    }
-
     return (
         <section>
             <Header label="Login" />
             <h1>Owlight Financials</h1>
-
-            <div className="input-container">
             <h4>Username</h4>
             <input
                 type="text"
-                placeholder="Enter your username"
+                placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
             />
-
             <h4>Password</h4>
+            <div>
             <input
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
             </div>
-            {/* Show Password Checkbox */}
-            <p>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={showPassword}
-                        onChange={() => setShowPassword(!showPassword)}
-                    />
-                    Show Password
-                </label>
-            </p>
-
-            {/* Error Message */}
-            {error && <p className="error">{error}</p>}
-
-            {/* Login Button */}
-            <input type="button" value="Login" onClick={handleLogin} />
-
-            {/* Server Connection Status */}
-            <p className={`server-status ${serverStatus === "Connected" ? "connected" : "disconnected"}`}>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={showPassword}
+                    onChange={() => setShowPassword(!showPassword)}
+                />
+                Show Password
+            </label>
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            <div>
+            <button onClick={handleLogin}>Login</button>
+            </div>
+            <p style={{ marginTop: "10px", fontWeight: "bold", color: serverStatus === "Connected" ? "green" : "red" }}>
                 Server Status: {serverStatus}
             </p>
         </section>
