@@ -24,6 +24,7 @@ export default function LoginScreen() {
     const [newRole, setNewRole] = useState("user"); // Default role
     const navigate = useNavigate();
 
+
     const [serverStatus, setServerStatus] = useState<"Connected" | "Disconnected" | "Checking...">("Checking...");
     const scramblePassword = (password: string): string => {
         const reversed = password.split("").reverse().join(""); // Reverse the string
@@ -31,6 +32,15 @@ export default function LoginScreen() {
         const suffix = "_end";
         return `${prefix}${reversed}${suffix}`; // Add prefix and suffix
     };
+    const unscramblePassword = (scrambledPassword: string): string => {
+        // Remove the prefix and suffix
+        if (scrambledPassword.startsWith("secure_") && scrambledPassword.endsWith("_end")) {
+            const trimmed = scrambledPassword.slice(7, -4); // Remove "secure_" and "_end"
+            return trimmed.split("").reverse().join(""); // Reverse the string back
+        }
+        return scrambledPassword; // Return as is if the format is unexpected
+    };
+
     const {
         users, // Users are fetched from UserManager
         loading,
@@ -55,6 +65,7 @@ export default function LoginScreen() {
         checkServerConnection();
     }, [loading, userManagerError]);
 
+
     // Handle Login
     const handleLogin = async () => {
         if (!users || users.length === 0) {
@@ -62,35 +73,37 @@ export default function LoginScreen() {
             return;
         }
 
-        console.log("Login Checking Against:", users.length + " users");
-
         let potentialUser: BaseUser | undefined = users.find(
             (anyUser) => anyUser.username === username
         );
 
-        console.log("Potential Username: " + potentialUser?.username);
-        console.log("Potential Password: " + potentialUser?.password.GetPassword());
+        if (potentialUser) {
+            const storedPassword = potentialUser.password.GetPassword();
+            const unscrambledStoredPassword = unscramblePassword(storedPassword);
 
-        if (potentialUser && potentialUser.password.IsPassword(password)) {
-            if (potentialUser.password.isExpired()) {
-                alert("Password is Expired");
-                setError("Expired Password");
-                return;
-            }
-            if (potentialUser.is_active) {
-                if (potentialUser.role === "admin") {
-                    navigate("/admin");
+            if (unscrambledStoredPassword === password) {
+                if (potentialUser.password.isExpired()) {
+                    alert("Password is Expired");
+                    setError("Expired Password");
+                    return;
+                }
+                if (potentialUser.is_active) {
+                    if (potentialUser.role === "admin") {
+                        navigate("/admin");
+                    } else {
+                        navigate("/accounts");
+                    }
                 } else {
-                    navigate("/accounts");
+                    setError("User is deactivated");
                 }
             } else {
-                setError("User is deactivated");
+                setError("Invalid username or password");
             }
         } else {
             setError("Invalid username or password");
         }
     };
-    // Handle creating a new user
+
     const handleCreateAccount = async () => {
         if (!newUsername || !newPassword) {
             alert("Please fill in all fields.");
@@ -116,7 +129,6 @@ export default function LoginScreen() {
                 setNewPassword("");
                 setNewRole("user");
                 setNewBirthday("");
-
             } else {
                 alert("Failed to create account. Try again later.");
             }
