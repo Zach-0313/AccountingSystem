@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import BaseUser from "./User/BaseUser";
 import Header from "./Header";
 import UserManager from "./User/UserManager";
+import {DatabaseManager} from "./DatabaseManager.tsx";
+import HelpButton from "./HelpButton";
+
 
 export default function LoginScreen() {
 
@@ -13,11 +16,22 @@ export default function LoginScreen() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [forgotPasswordPopup, setForgotPasswordPopup] = useState(false);
+    const [createAccountPopup, setCreateAccountPopup] = useState(false);
+
+    const [newUsername, setNewUsername] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [newRole, setNewRole] = useState("user"); // Default role
 
     const navigate = useNavigate();
 
     const [serverStatus, setServerStatus] = useState<"Connected" | "Disconnected" | "Checking...">("Checking...");
-
+    const scramblePassword = (password: string): string => {
+        const reversed = password.split("").reverse().join(""); // Reverse the string
+        const prefix = "secure_";
+        const suffix = "_end";
+        return `${prefix}${reversed}${suffix}`; // Add prefix and suffix
+    };
     const {
         users, // Users are fetched from UserManager
         loading,
@@ -77,6 +91,39 @@ export default function LoginScreen() {
             setError("Invalid username or password");
         }
     };
+    // Handle creating a new user
+    const handleCreateAccount = async () => {
+        if (!newUsername || !newPassword) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        const dbManager = new DatabaseManager("users");
+        const scrambledPassword = scramblePassword(newPassword);
+        const newUser = {
+            username: newUsername,
+            password: scrambledPassword,
+            role: newRole,
+            is_active: true,
+        };
+
+        try {
+            const result = await dbManager.insert(newUser);
+            if (result) {
+                alert("Account created successfully!");
+                setCreateAccountPopup(false);
+                setNewUsername("");
+                setNewPassword("");
+                setNewRole("user");
+            } else {
+                alert("Failed to create account. Try again later.");
+            }
+        } catch (error) {
+            console.error("Error creating account:", error);
+            alert("An error occurred. Please try again.");
+        }
+    };
+
 
     return (
         <section>
@@ -108,11 +155,54 @@ export default function LoginScreen() {
             </label>
             {error && <p style={{ color: "red" }}>{error}</p>}
             <div>
-            <button onClick={handleLogin}>Login</button>
+                <button onClick={handleLogin}>Login</button>
             </div>
             <p style={{ marginTop: "10px", fontWeight: "bold", color: serverStatus === "Connected" ? "green" : "red" }}>
                 Server Status: {serverStatus}
             </p>
+
+            <div>
+                <button onClick={() => setForgotPasswordPopup(true)}>Forgot Password?</button>
+                <button onClick={() => setCreateAccountPopup(true)}>Create Account</button>
+            </div>
+
+            {/* Forgot Password Popup */}
+            {forgotPasswordPopup && (
+                <div className="popup">
+                    <h2>Reset Password</h2>
+                    <input type="text" placeholder="Enter your username" />
+                    <button onClick={() => setForgotPasswordPopup(false)}>Submit</button>
+                    <button onClick={() => setForgotPasswordPopup(false)}>Close</button>
+                </div>
+            )}
+
+            {/* Create Account Popup */}
+            {createAccountPopup && (
+                <div className="popup">
+                    <h2>Create Account</h2>
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button onClick={handleCreateAccount}>Submit</button>
+                    <button onClick={() => setCreateAccountPopup(false)}>Close</button>
+                </div>
+            )}
+            {/* Help Button */}
+            <HelpButton />
         </section>
+
     );
 }
