@@ -82,14 +82,13 @@ export default function LoginScreen() {
         <section>
             <Header label="Login" />
             <h1>Owlight Financials</h1>
-            <h4>Username</h4>
+            <div className="input-container">
             <input
                 type="text"
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
             />
-            <h4>Password</h4>
             <div>
             <input
                 type={showPassword ? "text" : "password"}
@@ -97,6 +96,7 @@ export default function LoginScreen() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
+            </div>
             </div>
             <label>
                 <input
