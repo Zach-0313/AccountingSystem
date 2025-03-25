@@ -6,22 +6,23 @@ import { useNavigate } from "react-router-dom";
 import BaseUser from "./User/BaseUser";
 import Header from "./Header";
 import UserManager from "./User/UserManager";
-import {DatabaseManager} from "./DatabaseManager.tsx";
+import { createClient } from "@supabase/supabase-js";
 import HelpButton from "./HelpButton";
-
 export default function LoginScreen() {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [newBirthday, setNewBirthday] = useState("");    const [error, setError] = useState("");
+    const [newBirthday, setNewBirthday] = useState("");
+    const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [forgotPasswordPopup, setForgotPasswordPopup] = useState(false);
     const [createAccountPopup, setCreateAccountPopup] = useState(false);
     const [newUsername, setNewUsername] = useState("");
+    const [newEmailAddress, setNewEmailAddress] = useState("");
     const [newFirstName, setNewFirstName] = useState("");
     const [newLastName, setNewLastName] = useState("");
     const [newPassword, setNewPassword] = useState("");
-    const [newRole, setNewRole] = useState("user"); // Default role
+    const [newRole, setNewRole] = useState("user");
     const navigate = useNavigate();
 
 
@@ -35,8 +36,8 @@ export default function LoginScreen() {
     const unscramblePassword = (scrambledPassword: string): string => {
         // Remove the prefix and suffix
         if (scrambledPassword.startsWith("secure_") && scrambledPassword.endsWith("_end")) {
-            const trimmed = scrambledPassword.slice(7, -4); // Remove "secure_" and "_end"
-            return trimmed.split("").reverse().join(""); // Reverse the string back
+            const trimmed = scrambledPassword.slice(7, -4);
+            return trimmed.split("").reverse().join("");
         }
         return scrambledPassword; // Return as is if the format is unexpected
     };
@@ -104,39 +105,74 @@ export default function LoginScreen() {
         }
     };
 
+
+
+
     const handleCreateAccount = async () => {
-        if (!newUsername || !newPassword) {
+        if (!newFirstName || !newLastName || !newUsername || !newEmailAddress || !newPassword || !newBirthday) {
             alert("Please fill in all fields.");
             return;
         }
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            alert("Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.");
+            return;
+        }
+        const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4"
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const dbManager = new DatabaseManager("users");
         const scrambledPassword = scramblePassword(newPassword);
-        const newUser = {
+        const user = {
             username: newUsername,
-            password: scrambledPassword,
+            email: newEmailAddress,
+            first_name: newFirstName,
+            last_name: newLastName,
             role: newRole,
+            password: scrambledPassword,
             birthday: newBirthday,
-            is_active: true,
+            is_active: false, //I changed it to false so that I can get the approval by the admin first. DR
         };
 
         try {
-            const result = await dbManager.insert(newUser);
-            if (result) {
-                alert("Account created successfully!");
-                setCreateAccountPopup(false);
-                setNewUsername("");
-                setNewPassword("");
-                setNewRole("user");
-                setNewBirthday("");
+            const { data, error } = await supabase
+                .from("User_Credentials_Test")
+                .insert([user]);
+
+            console.log("Supabase response:", data, error);
+
+            if (error) {
+                console.error("Error creating account:", error.message, error.details);
+                alert("Failed to create account. Please try again.");
             } else {
-                alert("Failed to create account. Try again later.");
+                console.log("Inserted Data:", data);
+                alert("Account created successfully!");
+
+                setCreateAccountPopup(false);
+                setNewFirstName("");
+                setNewLastName("");
+                setNewUsername("");
+                setNewEmailAddress("");
+                setNewPassword("");
+                setNewBirthday("");
+                setNewRole("user");
             }
+            if (!error) {
+                console.log("Inserted Data:", data);
+                alert("Account created successfully!");
+
+
+
+            }
+
         } catch (error) {
-            console.error("Error creating account:", error);
-            alert("An error occurred. Please try again.");
+            console.error("Unexpected error:", error);
+            alert("An unexpected error occurred. Please try again.");
         }
+
+
     };
+
 
 
     return (
@@ -178,14 +214,14 @@ export default function LoginScreen() {
                 <a
                     href="#"
                     onClick={(e) => { e.preventDefault(); setForgotPasswordPopup(true); }}
-                    style={{ textDecoration: "none", color: "blue", fontSize: "16px", marginRight: "10px" }}
+                    style={{ textDecoration: "underline", color: "blue", fontSize: "16px", marginRight: "10px" }}
                 >
                     Forgot Password?
                 </a>
                 <a
                     href="#"
                     onClick={(e) => { e.preventDefault(); setCreateAccountPopup(true); }}
-                    style={{ textDecoration: "none", color: "blue", fontSize: "16px" }}
+                    style={{ textDecoration: "underline", color: "blue", fontSize: "16px" }}
                 >
                     Create Account
                 </a>
@@ -195,7 +231,9 @@ export default function LoginScreen() {
             {forgotPasswordPopup && (
                 <div className="popup" style={{ border: "1px solid #ccc", padding: "20px", borderRadius: "10px", background: "#f9f9f9" }}>
                     <h2>Reset Password</h2>
-                    <input type="text" placeholder="Enter your username" style={{ marginBottom: "10px" }} />
+                    <input type="text" placeholder="User Name" style={{ marginBottom: "10px" }} />
+                    <input type="email" placeholder="Email Address" style={{ marginBottom: "10px" }} />
+
                     <div>
                         <a
                             href="#"
@@ -247,6 +285,14 @@ export default function LoginScreen() {
                         value={newUsername}
                         onChange={(e) => setNewUsername(e.target.value)}
                         style={{ marginBottom: "10px", display: "block" }}
+                    />
+                    <input
+                        type="email"
+                        placeholder="Email Address"
+                        value={newEmailAddress}
+                        onChange={(e) => setNewEmailAddress(e.target.value)}
+                        style={{ marginBottom: "10px", display: "block" }}
+
                     />
                     <input
                         type="password"
