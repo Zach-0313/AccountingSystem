@@ -89,22 +89,21 @@ export default function LoginScreen() {
             const unscrambledStoredPassword = unscramblePassword(storedPassword);
 
             if (unscrambledStoredPassword === password) {
-                // Check if the password is expired
-                if (potentialUser.password.isExpired()) {
-                    alert("Your password has expired. Please update it.");
-                    setError("Expired Password");
-                    return;
-                }
-
-                // Check if password is about to expire (e.g., within 7 days)
-                const passwordExpirationDate = new Date(potentialUser.password.expirationDate); // Ensure `expirationDate` is correct
+                // Get the password creation date
+                const creationDate = new Date(potentialUser.password.created_at); // Assuming created_at is a field
                 const currentDate = new Date();
-                const timeDifference = passwordExpirationDate.getTime() - currentDate.getTime();
+
+                // Calculate the difference between the current date and one year from the creation date
+                const oneYearLater = new Date(creationDate);
+                oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+
+                // Calculate the difference in days
+                const timeDifference = oneYearLater.getTime() - currentDate.getTime();
                 const daysRemaining = timeDifference / (1000 * 3600 * 24); // Convert milliseconds to days
 
-                // If the password is about to expire within 7 days, show an alert
-                if (daysRemaining <= 7) {
-                    alert(`Your password is about to expire in ${Math.round(daysRemaining)} days. Please update it.`);
+                // If it's within 14 days of one year, show an alert
+                if (daysRemaining <= 14 && daysRemaining > 0) {
+                    alert(`Your password will expire in ${Math.round(daysRemaining)} days. Please update it.`);
                     setError("Password is about to expire.");
                     return;
                 }
@@ -126,9 +125,6 @@ export default function LoginScreen() {
             setError("Invalid username or password");
         }
     };
-
-    alert("Your password has expired. Please update it.");
-
 
 
 
