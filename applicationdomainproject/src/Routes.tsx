@@ -5,6 +5,7 @@ import AccountView from "./AccountView";
 import AdminPanel from "./AdminPanel";
 import AccountViewPage from "./AccountViewPage";
 import AccountsJournalizing from "./AccountsJournalizing";
+import ExpiredUser from "./ExpiredUser.tsx";
 export default function AppRoutes() {
     return (
         <Router>
@@ -15,7 +16,7 @@ export default function AppRoutes() {
                 <Route path="/accounts" element={<AccountView />} />
                 <Route path="/accounts/journalizing" element={<AccountsJournalizing />} />
                 <Route path="/accounts/:id" element={<AccountViewPage />} />
-
+                <Route path="/admin/ExpiredUser" element={<ExpiredUser />} />
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>
