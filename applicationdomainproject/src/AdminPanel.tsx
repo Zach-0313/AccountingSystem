@@ -20,7 +20,7 @@ const AdminPanel = () => {
     const [dateOfBirth, setDateOfBirth] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [role, setRole] = useState<"admin" | "user" | "manager">("user");
-    const [isActive, setIsActive] = useState<boolean>(true);
+    const [isActive, setIsActive] = useState<boolean>(false);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
 
@@ -93,11 +93,27 @@ const AdminPanel = () => {
 
     // 🔹 Toggle Active State
     const toggleActive = async (id: string) => {
-
-        // Update Supabase
         const userToUpdate = users.find(user => user.id === id);
         if (userToUpdate) {
-            await supabase.from("User_Credentials").update({ id: id }).match({ id: id });
+            const updatedUser = new BaseUser(
+                userToUpdate.id,
+                userToUpdate.username,
+                userToUpdate.password,
+                userToUpdate.firstName,
+                userToUpdate.lastName,
+                userToUpdate.dob,
+                userToUpdate.email,
+                userToUpdate.role,
+                !userToUpdate.is_active
+            );
+            const { error } = await supabase.from("User_Credentials").update({ user: updatedUser.toJSON() }).eq("id", id);
+            if (error) {
+                console.error("Error toggling active status:", error);
+                return;
+            }
+
+            // Update the users state to reflect the change
+            setUsers(prevUsers => prevUsers.map(user => user.id === id ? updatedUser : user));
         }
     };
 
@@ -144,8 +160,18 @@ const AdminPanel = () => {
                                     <td>{user.is_active ? "Yes" : "No"}</td>
                                     <td>
                                         <button onClick={() => handleEdit(user)}>Edit</button>
-                                        <button onClick={() => toggleActive(user.id)}>Toggle Active</button>
-                                    </td>
+                                        <button
+                                            onClick={() => toggleActive(user.id)}
+                                            style={{
+                                                backgroundColor: user.is_active ? "green" : "red",
+                                                color: "white",
+                                                padding: "5px 10px",
+                                                borderRadius: "5px",
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            {user.is_active ? "Active" : "Toggle to Activate"}
+                                        </button>                                    </td>
                                 </tr>
                             ))}
                         </tbody>

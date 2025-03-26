@@ -9,6 +9,9 @@ import UserManager from "./User/UserManager";
 import { createClient } from "@supabase/supabase-js";
 import HelpButton from "./HelpButton";
 export default function LoginScreen() {
+    const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4"
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -23,30 +26,33 @@ export default function LoginScreen() {
     const [newLastName, setNewLastName] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [newRole, setNewRole] = useState("user");
+    const [email, setEmail] = useState("");
+    const [showPasswordExpirationPopup, setShowPasswordExpirationPopup] = useState(false);
+
     const navigate = useNavigate();
 
 
     const [serverStatus, setServerStatus] = useState<"Connected" | "Disconnected" | "Checking...">("Checking...");
     const scramblePassword = (password: string): string => {
-        const reversed = password.split("").reverse().join(""); // Reverse the string
+        const reversed = password.split("").reverse().join("");
         const prefix = "secure_";
         const suffix = "_end";
-        return `${prefix}${reversed}${suffix}`; // Add prefix and suffix
+        return `${prefix}${reversed}${suffix}`;
     };
     const unscramblePassword = (scrambledPassword: string): string => {
-        // Remove the prefix and suffix
         if (scrambledPassword.startsWith("secure_") && scrambledPassword.endsWith("_end")) {
             const trimmed = scrambledPassword.slice(7, -4);
             return trimmed.split("").reverse().join("");
         }
-        return scrambledPassword; // Return as is if the format is unexpected
+        return scrambledPassword;
     };
 
     const {
-        users, // Users are fetched from UserManager
+        users,
         loading,
         error: userManagerError
     } = UserManager();
+
 
     // Check if the server is connected by waiting for user data to be loaded
     useEffect(() => {
@@ -83,11 +89,27 @@ export default function LoginScreen() {
             const unscrambledStoredPassword = unscramblePassword(storedPassword);
 
             if (unscrambledStoredPassword === password) {
+                // Check if the password is expired
                 if (potentialUser.password.isExpired()) {
-                    alert("Password is Expired");
+                    alert("Your password has expired. Please update it.");
                     setError("Expired Password");
                     return;
                 }
+
+                // Check if password is about to expire (e.g., within 7 days)
+                const passwordExpirationDate = new Date(potentialUser.password.expirationDate); // Ensure `expirationDate` is correct
+                const currentDate = new Date();
+                const timeDifference = passwordExpirationDate.getTime() - currentDate.getTime();
+                const daysRemaining = timeDifference / (1000 * 3600 * 24); // Convert milliseconds to days
+
+                // If the password is about to expire within 7 days, show an alert
+                if (daysRemaining <= 7) {
+                    alert(`Your password is about to expire in ${Math.round(daysRemaining)} days. Please update it.`);
+                    setError("Password is about to expire.");
+                    return;
+                }
+
+                // Proceed with login if the password is valid and not expired
                 if (potentialUser.is_active) {
                     if (potentialUser.role === "admin") {
                         navigate("/admin");
@@ -105,6 +127,10 @@ export default function LoginScreen() {
         }
     };
 
+    alert("Your password has expired. Please update it.");
+
+
+
 
 
 
@@ -118,9 +144,6 @@ export default function LoginScreen() {
             alert("Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.");
             return;
         }
-        const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4"
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const scrambledPassword = scramblePassword(newPassword);
         const user = {
@@ -173,6 +196,43 @@ export default function LoginScreen() {
 
     };
 
+    const handleForgotPassword = async () => {
+        if (!username || !email) {
+            setError("Please provide both username and email.");
+            return;
+        }
+
+        try {
+            const { data: users, error } = await supabase
+                .from("User_Credentials_Test")
+                .select("first_name, last_name, email, username, password")
+                .eq("username", username)
+                .eq("email", email);
+
+            if (error) throw error;
+
+            if (users && users.length > 0) {
+                const user = users[0];
+                const unscrambledPassword = unscramblePassword(user.password);
+
+                alert(`
+                First Name: ${user.first_name}
+                Last Name: ${user.last_name}
+                Email: ${user.email}
+                Username: ${user.username}
+                Password: ${unscrambledPassword}
+            `);
+                setForgotPasswordPopup(false);
+                setUsername("");
+                setEmail("");
+            } else {
+                setError("No matching user found with the provided username and email.");
+            }
+        } catch (err) {
+            console.error("Error retrieving password:", err);
+            setError("An error occurred while retrieving the password.");
+        }
+    };
 
 
     return (
@@ -229,29 +289,65 @@ export default function LoginScreen() {
 
             {/* Forgot Password Popup */}
             {forgotPasswordPopup && (
-                <div className="popup" style={{ border: "1px solid #ccc", padding: "20px", borderRadius: "10px", background: "#f9f9f9" }}>
+                <div
+                    className="popup"
+                    style={{
+                        border: "1px solid #ccc",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        background: "#f9f9f9",
+                    }}
+                >
                     <h2>Reset Password</h2>
-                    <input type="text" placeholder="User Name" style={{ marginBottom: "10px" }} />
-                    <input type="email" placeholder="Email Address" style={{ marginBottom: "10px" }} />
+                    <input
+                        type="text"
+                        placeholder="User Name"
+                        value={username} // Bind to username state
+                        onChange={(e) => setUsername(e.target.value)} // Update state on change
+                        style={{ marginBottom: "10px" }}
+                    />
+                    <input
+                        type="email"
+                        placeholder="Email Address"
+                        value={email} // Bind to email state
+                        onChange={(e) => setEmail(e.target.value)} // Update state on change
+                        style={{ marginBottom: "10px" }}
+                    />
 
                     <div>
                         <a
                             href="#"
-                            onClick={(e) => { e.preventDefault(); setForgotPasswordPopup(false); }}
-                            style={{ textDecoration: "none", color: "blue", fontSize: "14px", marginRight: "10px" }}
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                await handleForgotPassword(); // Trigger forgot password logic
+                            }}
+                            style={{
+                                textDecoration: "none",
+                                color: "blue",
+                                fontSize: "14px",
+                                marginRight: "10px",
+                            }}
                         >
                             Submit
                         </a>
                         <a
                             href="#"
-                            onClick={(e) => { e.preventDefault(); setForgotPasswordPopup(false); }}
-                            style={{ textDecoration: "none", color: "blue", fontSize: "14px" }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setForgotPasswordPopup(false); // Close the popup
+                            }}
+                            style={{
+                                textDecoration: "none",
+                                color: "blue",
+                                fontSize: "14px",
+                            }}
                         >
                             Close
                         </a>
                     </div>
                 </div>
             )}
+
 
             {/* Create Account Popup */}
             {createAccountPopup && (
