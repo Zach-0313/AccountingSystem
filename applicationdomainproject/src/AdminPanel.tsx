@@ -107,6 +107,7 @@ const AdminPanel = () => {
                 <>
                     {/* Form */}
                     <form onSubmit={handleSubmit} style={formStyle}>
+                        <div className="create-user">
                         <div><label>Username:</label><input type="text" value={username} onChange={e => setUsername(e.target.value)} required /></div>
                         <div><label>Password:</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
                         <div><label>First Name:</label><input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required /></div>
@@ -117,6 +118,7 @@ const AdminPanel = () => {
                             <select value={role} onChange={e => setRole(e.target.value as "admin" | "user" | "manager")}>
                                 <option value="admin">Admin</option><option value="user">User</option><option value="manager">Manager</option>
                             </select>
+                        </div>
                         </div>
                         <div><label>Active:</label><input type="checkbox" checked={isActive} onChange={() => setIsActive(!isActive)} /></div>
                         <button type="submit">{editingUserId ? "Update User" : "Create User"}</button>
