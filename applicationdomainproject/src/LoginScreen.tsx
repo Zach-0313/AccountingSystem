@@ -27,7 +27,6 @@ export default function LoginScreen() {
     const [newPassword, setNewPassword] = useState("");
     const [newRole, setNewRole] = useState("user");
     const [email, setEmail] = useState("");
-    const [showPasswordExpirationPopup, setShowPasswordExpirationPopup] = useState(false);
 
     const navigate = useNavigate();
 
@@ -90,7 +89,7 @@ export default function LoginScreen() {
 
             if (unscrambledStoredPassword === password) {
                 // Get the password creation date
-                const creationDate = new Date(potentialUser.password.created_at); // Assuming created_at is a field
+                const creationDate = new Date(potentialUser.password.createdAt); // Assuming created_at is a field
                 const currentDate = new Date();
 
                 // Calculate the difference between the current date and one year from the creation date
