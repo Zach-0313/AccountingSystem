@@ -4,6 +4,7 @@ import './App.css';
 import './index.css';
 import { useNavigate } from "react-router-dom";
 import BaseUser from "./User/BaseUser";
+import BasePassword from "./User/BasePassword";
 import Header from "./Header";
 import UserManager from "./User/UserManager";
 import { createClient } from "@supabase/supabase-js";
@@ -152,10 +153,11 @@ export default function LoginScreen() {
             is_active: false, //I changed it to false so that I can get the approval by the admin first. DR
         };
 
+        let userToAdd : BaseUser = new BaseUser((users.length + 1).toString(), user.username, new BasePassword(user.password), user.first_name, user.last_name, user.birthday, user.email, "user", false);
         try {
             const { data, error } = await supabase
-                .from("User_Credentials_Test")
-                .insert([user]);
+                .from("User_Credentials")
+                .insert([{ id: userToAdd.id, user: userToAdd.toJSON() }]);
 
             console.log("Supabase response:", data, error);
 
@@ -198,23 +200,22 @@ export default function LoginScreen() {
         }
 
         try {
-            const { data: users, error } = await supabase
-                .from("User_Credentials_Test")
-                .select("first_name, last_name, email, username, password")
-                .eq("username", username)
-                .eq("email", email);
+            let potentialUser: BaseUser | undefined = users.find(
+                (anyUser) => anyUser.username === username
+            );
+
+            
 
             if (error) throw error;
 
-            if (users && users.length > 0) {
-                const user = users[0];
-                const unscrambledPassword = unscramblePassword(user.password);
+            if (potentialUser) {
+                const unscrambledPassword = unscramblePassword(potentialUser.password.password);
 
                 alert(`
-                First Name: ${user.first_name}
-                Last Name: ${user.last_name}
-                Email: ${user.email}
-                Username: ${user.username}
+                First Name: ${potentialUser.firstName}
+                Last Name: ${potentialUser.lastName}
+                Email: ${potentialUser.email}
+                Username: ${potentialUser.username}
                 Password: ${unscrambledPassword}
             `);
                 setForgotPasswordPopup(false);
