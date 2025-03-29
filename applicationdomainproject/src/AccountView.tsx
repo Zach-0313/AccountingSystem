@@ -5,6 +5,7 @@ import "./App.css";
 import Header from "./Header";
 import AccountsNavbar from "./AccountsNavbar";
 import PopUpCalendar from "./PopUpCalendar";
+import HelpButton from "./HelpButton.tsx";
 
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
@@ -152,6 +153,8 @@ export default function AccountView() {
                 )}
                 </tbody>
             </table>
+            {/* Help Button */}
+            <HelpButton />
         </div>
     );
 }

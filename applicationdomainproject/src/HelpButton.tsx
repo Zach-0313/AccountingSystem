@@ -3,14 +3,14 @@ import React, { useState } from "react";
 const HelpButton: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
+    // Toggle modal open/close
+    const toggleModal = () => setIsModalOpen(prev => !prev);
 
     return (
         <>
             {/* Help Button */}
             <button
-                onClick={openModal}
+                onClick={toggleModal}
                 className="fixed bottom-4 right-4 bg-red-600 text-white text-lg font-bold px-6 py-3 rounded-full shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
             >
                 HELP
@@ -36,16 +36,6 @@ const HelpButton: React.FC = () => {
                                 <li><strong>Contact Support:</strong> Steps to get additional help.</li>
                             </ul>
                         </div>
-
-                        {/* Modal Footer */}
-                        <footer className="p-4 border-t flex justify-end">
-                            <button
-                                onClick={closeModal}
-                                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                            >
-                                Close
-                            </button>
-                        </footer>
                     </div>
                 </div>
             )}

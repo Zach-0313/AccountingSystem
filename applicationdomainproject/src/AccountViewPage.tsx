@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
+import HelpButton from "./HelpButton.tsx";
 
 // Supabase setup
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
@@ -81,6 +82,8 @@ const AccountViewPage = () => {
             <button onClick={() => navigate(-1)} className="view-button">
                 Back to Accounts
             </button>
+            {/* Help Button */}
+            <HelpButton />
         </div>
     );
 };

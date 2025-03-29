@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Link } from "react-router-dom";
-
+import HelpButton from "./HelpButton.tsx";
 interface User {
     id: number;
     username: string;
@@ -154,7 +154,10 @@ const ExpiredUsers = () => {
             <Link to="/admin">
                 <button style={buttonStyle}>Back to Admin Hub</button>
             </Link>
+            {/* Help Button */}
+            <HelpButton />
         </div>
+
     );
 };
 

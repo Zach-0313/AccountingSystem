@@ -1,5 +1,6 @@
 import Header from "./Header";
 import { Link } from 'react-router-dom';
+import HelpButton from "./HelpButton.tsx";
 const AdminHub = () => {
         return (
             <div>
@@ -10,8 +11,13 @@ const AdminHub = () => {
                 <Link to="/admin/ExpiredUser" style={{ textDecoration: "none" }}>
                     <button>Expired Users</button>
                 </Link>
+                {/* Help Button */}
+                <HelpButton />
             </div>
+
         );
-    
+
 }
+
+
 export default AdminHub;
