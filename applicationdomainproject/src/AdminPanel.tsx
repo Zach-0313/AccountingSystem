@@ -22,7 +22,7 @@ const AdminPanel = () => {
     const [role, setRole] = useState<"admin" | "user" | "manager">("user");
     const [isActive, setIsActive] = useState<boolean>(false);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
-
+    const [adminRole, setAdminRole] = useState<boolean>(false); // Track if the current user is an admin
 
     // 🔹 Fetch Users from Supabase on Mount
     useEffect(() => {
@@ -32,6 +32,8 @@ const AdminPanel = () => {
                 console.error("Error fetching users:", res.error);
                 return;
             }
+            const currentUserRole = "admin"; // This should be dynamically set based on the logged-in user's role
+            setAdminRole(currentUserRole === "admin");
 
             const newUsers = res.data?.map(entry => BaseUser.fromJSON(entry.user)) || [];
 
@@ -117,13 +119,21 @@ const AdminPanel = () => {
         }
     };
 
+    // 🔹 Get Time of Day Greeting
+    const getTimeOfDayGreeting = () => {
+        const currentHour = new Date().getHours();
+        if (currentHour < 12) return "Good Morning";
+        if (currentHour < 18) return "Good Afternoon";
+        return "Good Evening";
+    };
+
     return (
         <div>
             <Header label="User Management" />
-                <>
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} style={formStyle}>
-                        <div className="create-user">
+            <>
+                {/* Form */}
+                <form onSubmit={handleSubmit} style={formStyle}>
+                    <div className="create-user">
                         <div><label>Username:</label><input type="text" value={username} onChange={e => setUsername(e.target.value)} required /></div>
                         <div><label>Password:</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
                         <div><label>First Name:</label><input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required /></div>
@@ -135,55 +145,66 @@ const AdminPanel = () => {
                                 <option value="admin">Admin</option><option value="user">User</option><option value="manager">Manager</option>
                             </select>
                         </div>
-                        </div>
-                        <div><label>Active:</label><input type="checkbox" checked={isActive} onChange={() => setIsActive(!isActive)} /></div>
-                        <button type="submit">{editingUserId ? "Update User" : "Create User"}</button>
-                    </form>
+                    </div>
+                    <div><label>Active:</label><input type="checkbox" checked={isActive} onChange={() => setIsActive(!isActive)} /></div>
+                    <button type="submit">{editingUserId ? "Update User" : "Create User"}</button>
+                </form>
 
-                    {/* User Table */}
-                    <h3>Users</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Username</th><th>Password</th><th>First Name</th><th>Last Name</th>
-                                <th>Date of Birth</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th>
+                {/* User Table */}
+                <h3>Users</h3>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Username</th><th>Password</th><th>First Name</th><th>Last Name</th>
+                        <th>Date of Birth</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {users.map(user => {
+                        const greeting = getTimeOfDayGreeting(); // Get appropriate greeting
+                        const subject = `Hello ${user.firstName} ${user.lastName}`;
+                        const body = `${greeting}, ${user.firstName} ${user.lastName}.`;
+
+                        return (
+                            <tr key={user.id}>
+                                <td>{user.username}</td>
+                                <td>{user.password.GetPassword()}</td>
+                                <td>{user.firstName}</td>
+                                <td>{user.lastName}</td>
+                                <td>{user.dob}</td>
+                                <td> <a
+                                    href={`mailto:${user.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+                                    style={{ textDecoration: 'none', color: 'blue' }}
+                                >
+                                    {user.email}
+                                </a></td>
+                                <td>{user.role}</td>
+                                <td>{user.is_active ? "Yes" : "No"}</td>
+                                <td>
+                                    <button onClick={() => handleEdit(user)}>Edit</button>
+                                    <button
+                                        onClick={() => toggleActive(user.id)}
+                                        style={{
+                                            backgroundColor: user.is_active ? "green" : "red",
+                                            color: "white",
+                                            padding: "5px 10px",
+                                            borderRadius: "5px",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        {user.is_active ? "Active" : "Toggle to Activate"}
+                                    </button>                                    </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {users.map(user => (
-                                <tr key={user.id}>
-                                    <td>{user.username}</td>
-                                    <td>{user.password.GetPassword()}</td>
-                                    <td>{user.firstName}</td>
-                                    <td>{user.lastName}</td>
-                                    <td>{user.dob}</td>
-                                    <td>{user.email}</td>
-                                    <td>{user.role}</td>
-                                    <td>{user.is_active ? "Yes" : "No"}</td>
-                                    <td>
-                                        <button onClick={() => handleEdit(user)}>Edit</button>
-                                        <button
-                                            onClick={() => toggleActive(user.id)}
-                                            style={{
-                                                backgroundColor: user.is_active ? "green" : "red",
-                                                color: "white",
-                                                padding: "5px 10px",
-                                                borderRadius: "5px",
-                                                cursor: "pointer"
-                                            }}
-                                        >
-                                            {user.is_active ? "Active" : "Toggle to Activate"}
-                                        </button>                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                        );
+                    })}
+                    </tbody>
+                </table>
                 <Link to="/admin">
                     <button style={buttonStyle}>Back to Admin Hub</button>
                 </Link>
 
-                </>
-            
+            </>
+
         </div>
     );
 };

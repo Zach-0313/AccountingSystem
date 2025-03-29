@@ -18,17 +18,34 @@ interface User {
 const ExpiredUsers = () => {
     const [expiredUsers, setExpiredUsers] = useState<User[]>([]);
     const [soonToExpireUsers, setSoonToExpireUsers] = useState<User[]>([]);
+    const [currentUser, setCurrentUser] = useState<User | null>(null); // Track the logged-in user
 
     const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     useEffect(() => {
+        const fetchCurrentUser = async () => {
+            const { data: sessionData } = await supabase.auth.getSession();
+            const userId = sessionData?.user?.id;
+
+            if (userId) {
+                const { data: userData, error } = await supabase
+                    .from('User_Credentials_Test')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (!error) {
+                    setCurrentUser(userData);
+                }
+            }
+        };
+
         const fetchUsers = async () => {
             try {
-                // Fetch users with the correct field names from Supabase
                 const { data, error } = await supabase
-                    .from('User_Credentials_Test') // Replace with your actual table name
+                    .from('User_Credentials_Test')
                     .select('id, username, email, created_at, password, first_name, last_name, birthday, role, is_active');
 
                 if (error) {
@@ -60,6 +77,7 @@ const ExpiredUsers = () => {
             }
         };
 
+        fetchCurrentUser();
         fetchUsers();
     }, [supabase]);
 
@@ -83,23 +101,27 @@ const ExpiredUsers = () => {
 
     return (
         <div>
-            <h5>Expired Users:</h5>
-            <ul>
-                {expiredUsers.map((user) => (
-                    <li key={user.id}>
-                        <p>{user.username} - {user.email} (Expired)</p>
-                    </li>
-                ))}
-            </ul>
+            {currentUser?.role !== 'admin' && (
+                <>
+                    <h5>Expired Users:</h5>
+                    <ul>
+                        {expiredUsers.map((user) => (
+                            <li key={user.id}>
+                                <p>{user.username} - {user.email} (Expired)</p>
+                            </li>
+                        ))}
+                    </ul>
 
-            <h5>Soon-to-be Expired Users (14 days remaining):</h5>
-            <ul>
-                {soonToExpireUsers.map((user) => (
-                    <li key={user.id}>
-                        <p>{user.username} - {user.email} (Expires in {Math.ceil((new Date(user.created_at).setFullYear(new Date(user.created_at).getFullYear() + 1) - new Date().getTime()) / (1000 * 3600 * 24))} days)</p>
-                    </li>
-                ))}
-            </ul>
+                    <h5>Soon-to-be Expired Users (14 days remaining):</h5>
+                    <ul>
+                        {soonToExpireUsers.map((user) => (
+                            <li key={user.id}>
+                                <p>{user.username} - {user.email} (Expires in {Math.ceil((new Date(user.created_at).setFullYear(new Date(user.created_at).getFullYear() + 1) - new Date().getTime()) / (1000 * 3600 * 24))} days)</p>
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            )}
 
             <h3>Users</h3>
             <table>
