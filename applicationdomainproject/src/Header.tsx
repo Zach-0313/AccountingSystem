@@ -34,7 +34,9 @@ type HeaderProps = {
     label?: string;
 };
 
-const Header: React.FC<HeaderProps> = ({ label = "Default Header"}) => {
+
+const Header: React.FC<HeaderProps> = ({ label = "Default Header" }) => {
+
     return (
         <header style={headerStyle}>
             <h2>{label}</h2>
