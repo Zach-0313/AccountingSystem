@@ -10,6 +10,9 @@ const AdminHub = () => {
                 <Link to="/admin/ExpiredUser" style={{ textDecoration: "none" }}>
                     <button>Expired Users</button>
                 </Link>
+                <Link to="/admin/AddAccount" style={{ textDecoration: "none" }}>
+                    <button>Add Account</button>
+                </Link>
 
             </div>
 

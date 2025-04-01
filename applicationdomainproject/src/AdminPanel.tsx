@@ -168,7 +168,13 @@ const AdminPanel = () => {
 
                         return (
                             <tr key={user.id}>
-                                <td>{user.username}</td>
+                                <td>
+                                    <Link to={`/add-account/${user.id}`} style={{ textDecoration: 'none', color: 'blue' }}>
+                                        {user.username}
+                                    </Link>
+
+                                </td>
+
                                 <td>{user.password.GetPassword()}</td>
                                 <td>{user.firstName}</td>
                                 <td>{user.lastName}</td>
