@@ -11,8 +11,7 @@ const AdminHub = () => {
                 <Link to="/admin/ExpiredUser" style={{ textDecoration: "none" }}>
                     <button>Expired Users</button>
                 </Link>
-                {/* Help Button */}
-                <HelpButton />
+
             </div>
 
         );
