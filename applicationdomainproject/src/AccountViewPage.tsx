@@ -62,7 +62,8 @@ const AccountViewPage = () => {
             .from("Chart_Of_Accounts_Change_Log")
             .select("*")
             .eq("account_id", id) // Fetch logs for this account
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+            .limit(10);
 
         if (error) {
             console.error("Error fetching account logs:", error);
