@@ -11,6 +11,7 @@ import AddAccountForm from "./AddAccountForm.tsx";
 
 
 
+import PendingJournalEntries from "./PendingJournalEntries";
 export default function AppRoutes() {
     return (
         <Router>
@@ -24,6 +25,8 @@ export default function AppRoutes() {
                 <Route path="/admin/ExpiredUser" element={<ExpiredUser />} />
                 <Route path="/add-account/:userId" element={<AddAccountForm />} />
                 <Route path="/admin/AddAccount" element={<AddAccountForm />} />
+                <Route path="/admin/approveJournalEntries" element={<PendingJournalEntries /> } />
+
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>

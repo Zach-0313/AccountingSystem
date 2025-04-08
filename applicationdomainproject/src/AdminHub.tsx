@@ -7,6 +7,9 @@ const AdminHub = () => {
                 <Link to="/admin/UserManagement" style={{ textDecoration: "none" }}>
                     <button>User Management</button>
                 </Link>
+                <Link to="/admin/approveJournalEntries" style={{ textDecoration: "none" }}>
+                    <button>Approve Journal Entries</button>
+                </Link>
                 <Link to="/admin/ExpiredUser" style={{ textDecoration: "none" }}>
                     <button>Expired Users</button>
                 </Link>
