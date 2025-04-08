@@ -9,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 interface AccountDetails {
     account_name: string;
-    account_number: string;
+    account_id: string;
     account_description: string;
     normal_side: string;
     account_category: string;
@@ -32,7 +32,7 @@ export default function AddAccountForm() {
     const [existingAccountNumber, setExistingAccountNumber] = useState<string>("");
     const [accountDetails, setAccountDetails] = useState<AccountDetails>({
         account_name: "",
-        account_number: Math.floor(1000 + Math.random() * 9000).toString(),
+        account_id: Math.floor(1000 + Math.random() * 9000).toString(),
         account_description: "",
         normal_side: "",
         account_category: "",
@@ -77,7 +77,7 @@ export default function AddAccountForm() {
         const { data, error } = await supabase
             .from("Chart_Of_Accounts")
             .select("*")
-            .eq("account_number", existingAccountNumber)
+            .eq("account_id", existingAccountNumber)
             .single();
 
         if (error || !data) {
@@ -85,7 +85,7 @@ export default function AddAccountForm() {
             setErrorMessage("Account not found. You can add a new one.");
             setAccountDetails((prev) => ({
                 ...prev,
-                account_number: existingAccountNumber,
+                account_id: existingAccountNumber,
             }));
         } else {
             setAccountDetails(data);
@@ -175,7 +175,7 @@ export default function AddAccountForm() {
                     />
                     <input
                         type="text"
-                        name="account_number"
+                        name="account_id"
                         placeholder="Account Number"
                         value={accountDetails.account_number}
                         readOnly
