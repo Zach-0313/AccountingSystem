@@ -60,6 +60,10 @@ const AccountViewPage = () => {
     const [accountLogs, setAccountLogs] = useState<AccountLog[]>([]);
     const [accountNumber, setAccountNumber] = useState<number>();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [totalDebit, setTotalDebit] = useState(0);
+    const [totalCredit, setTotalCredit] = useState(0);
+    const [balance, setBalance] = useState(0);
+
 
     useEffect(() => {
         const fetchAccount = async () => {
@@ -121,7 +125,18 @@ const AccountViewPage = () => {
             console.log("Raw data entries:", data);
 
 
+
             setTransactions(formatted || []);
+            const totalDebit = formatted.reduce((acc, tx) => acc + (tx.debit || 0), 0);
+            const totalCredit = formatted.reduce((acc, tx) => acc + (tx.credit || 0), 0);
+            const balance = totalDebit - totalCredit;
+
+// Optional: if you want to use them in JSX, save them in state:
+            setTotalDebit(totalDebit);
+            setTotalCredit(totalCredit);
+            setBalance(balance);
+
+            setLoading(false);
         };
 
         fetchTransactions();
@@ -275,6 +290,19 @@ const AccountViewPage = () => {
                     ))
                 )}
                 </tbody>
+                <tfoot>
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td></td>
+                    <td><strong>${totalDebit.toFixed(2)}</strong></td>
+                    <td><strong>${totalCredit.toFixed(2)}</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Balance</strong></td>
+                    <td colSpan={3}><strong>${balance.toFixed(2)}</strong></td>
+                </tr>
+                </tfoot>
+
             </table>
 
         </div>
