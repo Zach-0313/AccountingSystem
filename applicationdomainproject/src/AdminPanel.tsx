@@ -6,6 +6,7 @@ import BasePassword from "./User/BasePassword";
 import { createClient } from "@supabase/supabase-js"; // Ensure you import Supabase client
 import Header from "./Header";
 import { Link } from "react-router-dom";
+import HelpButton from "./HelpButton.tsx";
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
@@ -20,9 +21,9 @@ const AdminPanel = () => {
     const [dateOfBirth, setDateOfBirth] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [role, setRole] = useState<"admin" | "user" | "manager">("user");
-    const [isActive, setIsActive] = useState<boolean>(true);
+    const [isActive, setIsActive] = useState<boolean>(false);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
-
+    const [adminRole, setAdminRole] = useState<boolean>(false); // Track if the current user is an admin
 
     // 🔹 Fetch Users from Supabase on Mount
     useEffect(() => {
@@ -32,6 +33,8 @@ const AdminPanel = () => {
                 console.error("Error fetching users:", res.error);
                 return;
             }
+            const currentUserRole = "admin"; // This should be dynamically set based on the logged-in user's role
+            setAdminRole(currentUserRole === "admin");
 
             const newUsers = res.data?.map(entry => BaseUser.fromJSON(entry.user)) || [];
 
@@ -93,21 +96,45 @@ const AdminPanel = () => {
 
     // 🔹 Toggle Active State
     const toggleActive = async (id: string) => {
-
-        // Update Supabase
         const userToUpdate = users.find(user => user.id === id);
         if (userToUpdate) {
-            await supabase.from("User_Credentials").update({ id: id }).match({ id: id });
+            const updatedUser = new BaseUser(
+                userToUpdate.id,
+                userToUpdate.username,
+                userToUpdate.password,
+                userToUpdate.firstName,
+                userToUpdate.lastName,
+                userToUpdate.dob,
+                userToUpdate.email,
+                userToUpdate.role,
+                !userToUpdate.is_active
+            );
+            const { error } = await supabase.from("User_Credentials").update({ user: updatedUser.toJSON() }).eq("id", id);
+            if (error) {
+                console.error("Error toggling active status:", error);
+                return;
+            }
+
+            // Update the users state to reflect the change
+            setUsers(prevUsers => prevUsers.map(user => user.id === id ? updatedUser : user));
         }
+    };
+
+    // 🔹 Get Time of Day Greeting
+    const getTimeOfDayGreeting = () => {
+        const currentHour = new Date().getHours();
+        if (currentHour < 12) return "Good Morning";
+        if (currentHour < 18) return "Good Afternoon";
+        return "Good Evening";
     };
 
     return (
         <div>
             <Header label="User Management" />
-                <>
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} style={formStyle}>
-                        <div className="create-user">
+            <>
+                {/* Form */}
+                <form onSubmit={handleSubmit} style={formStyle}>
+                    <div className="create-user">
                         <div><label>Username:</label><input type="text" value={username} onChange={e => setUsername(e.target.value)} required /></div>
                         <div><label>Password:</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
                         <div><label>First Name:</label><input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required /></div>
@@ -119,47 +146,78 @@ const AdminPanel = () => {
                                 <option value="admin">Admin</option><option value="user">User</option><option value="manager">Manager</option>
                             </select>
                         </div>
-                        </div>
-                        <div><label>Active:</label><input type="checkbox" checked={isActive} onChange={() => setIsActive(!isActive)} /></div>
-                        <button type="submit">{editingUserId ? "Update User" : "Create User"}</button>
-                    </form>
+                    </div>
+                    <div><label>Active:</label><input type="checkbox" checked={isActive} onChange={() => setIsActive(!isActive)} /></div>
+                    <button type="submit">{editingUserId ? "Update User" : "Create User"}</button>
+                </form>
 
-                    {/* User Table */}
-                    <h3>Users</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Username</th><th>Password</th><th>First Name</th><th>Last Name</th>
-                                <th>Date of Birth</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th>
+                {/* User Table */}
+                <h3>Users</h3>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Username</th><th>Password</th><th>First Name</th><th>Last Name</th>
+                        <th>Date of Birth</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {users.map(user => {
+                        const greeting = getTimeOfDayGreeting(); // Get appropriate greeting
+                        const subject = `Hello ${user.firstName} ${user.lastName}`;
+                        const body = `${greeting}, ${user.firstName} ${user.lastName}.`;
+
+                        return (
+                            <tr key={user.id}>
+                                <td>
+                                    <Link to={`/add-account/${user.id}`} style={{ textDecoration: 'none', color: 'blue' }}>
+                                        {user.username}
+                                    </Link>
+
+                                </td>
+
+                                <td>{user.password.GetPassword()}</td>
+                                <td>{user.firstName}</td>
+                                <td>{user.lastName}</td>
+                                <td>{user.dob}</td>
+                                <td> <a
+                                    href={`mailto:${user.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+                                    style={{ textDecoration: 'none', color: 'blue' }}
+                                >
+                                    {user.email}
+                                </a></td>
+                                <td>{user.role}</td>
+                                <td>{user.is_active ? "Yes" : "No"}</td>
+                                <td>
+                                    <button onClick={() => handleEdit(user)}>Edit</button>
+                                    <button
+                                        onClick={() => toggleActive(user.id)}
+                                        style={{
+                                            backgroundColor: user.is_active ? "green" : "red",
+                                            color: "white",
+                                            padding: "5px 10px",
+                                            borderRadius: "5px",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        {user.is_active ? "Active" : "Toggle to Activate"}
+                                    </button>                                    </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {users.map(user => (
-                                <tr key={user.id}>
-                                    <td>{user.username}</td>
-                                    <td>{user.password.GetPassword()}</td>
-                                    <td>{user.firstName}</td>
-                                    <td>{user.lastName}</td>
-                                    <td>{user.dob}</td>
-                                    <td>{user.email}</td>
-                                    <td>{user.role}</td>
-                                    <td>{user.is_active ? "Yes" : "No"}</td>
-                                    <td>
-                                        <button onClick={() => handleEdit(user)}>Edit</button>
-                                        <button onClick={() => toggleActive(user.id)}>Toggle Active</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                        );
+                    })}
+                    </tbody>
+                </table>
                 <Link to="/admin">
                     <button style={buttonStyle}>Back to Admin Hub</button>
                 </Link>
 
-                </>
-            
+            </>
+
+            {/* Help Button */}
+            <HelpButton />
         </div>
+
     );
+
 };
 
 const buttonStyle = { backgroundColor: "#e44d26", color: "white", border: "none", padding: "10px 20px", cursor: "pointer", borderRadius: "5px" };

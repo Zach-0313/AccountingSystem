@@ -61,7 +61,7 @@ class BasePassword {
         const basePassword = new BasePassword(json.passwordSaved);
         basePassword.previousPasswords = Array.isArray(json.previousPasswords) ? json.previousPasswords : [];
         basePassword.createdAt = json.createdAt ? new Date(json.createdAt) : new Date();
-        basePassword.expireOn = json.expireOn ? new Date(json.expireOn) : undefined;
+        basePassword.expireOn = json.expireOn ? new Date(json.expireOn) : new Date();
 
         return basePassword;
     }

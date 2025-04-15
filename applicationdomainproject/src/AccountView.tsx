@@ -4,6 +4,9 @@ import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 import "./App.css";
 import Header from "./Header";
 import AccountsNavbar from "./AccountsNavbar";
+import PopUpCalendar from "./PopUpCalendar";
+import HelpButton from "./HelpButton.tsx";
+
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
@@ -97,7 +100,8 @@ export default function AccountView() {
             <Header label="Account View" />
             <AccountsNavbar/>
             <h1>Accounts</h1>
-
+            {/* Pop-Up Calendar */}
+            <PopUpCalendar />
             {/* Search and Filter Inputs */}
             <div className="filters">
                 <input
@@ -149,6 +153,8 @@ export default function AccountView() {
                 )}
                 </tbody>
             </table>
+            {/* Help Button */}
+            <HelpButton />
         </div>
     );
 }
