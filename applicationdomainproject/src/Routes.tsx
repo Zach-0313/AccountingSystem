@@ -7,8 +7,7 @@ import AccountViewPage from "./AccountViewPage";
 import AccountsJournalizing from "./AccountsJournalizing";
 import ExpiredUser from "./ExpiredUser.tsx";
 import AddAccountForm from "./AddAccountForm.tsx";
-
-
+import ReportScreen from "./ReportsScreen.tsx";
 
 
 import PendingJournalEntries from "./PendingJournalEntries";
@@ -21,6 +20,7 @@ export default function AppRoutes() {
                 <Route path="/admin/usermanagement" element={<AdminPanel />} />
                 <Route path="/accounts" element={<AccountView />} />
                 <Route path="/accounts/journalizing" element={<AccountsJournalizing />} />
+                <Route path="/accounts/Reports" element={<ReportScreen /> } />
                 <Route path="/accounts/:id" element={<AccountViewPage />} />
                 <Route path="/admin/ExpiredUser" element={<ExpiredUser />} />
                 <Route path="/add-account/:userId" element={<AddAccountForm />} />
