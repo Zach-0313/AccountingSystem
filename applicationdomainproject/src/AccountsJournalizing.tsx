@@ -11,8 +11,15 @@ const supabase = createClient(
 const AccountsJournalizing = () => {
     const [accounts, setAccounts] = useState([]);
     const [entries, setEntries] = useState([
-        { description: "", lines: [{ account_id: "", debit: "", credit: "" }] }
+        {
+            description: "",
+            lines: [
+                { account_id: "", debit: "", credit: "" },
+                { account_id: "", debit: "", credit: "" }
+            ]
+        }
     ]);
+
     const [loading, setLoading] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState("");
     const [feedbackType, setFeedbackType] = useState("");
@@ -41,8 +48,18 @@ const AccountsJournalizing = () => {
     };
 
     const addEntry = () => {
-        setEntries([...entries, { description: "", lines: [{ account_id: "", debit: "", credit: "" }] }]);
+        setEntries([
+            ...entries,
+            {
+                description: "",
+                lines: [
+                    { account_id: "", debit: "", credit: "" },
+                    { account_id: "", debit: "", credit: "" }
+                ]
+            }
+        ]);
     };
+
 
     const addLine = (entryIndex) => {
         const updated = [...entries];
