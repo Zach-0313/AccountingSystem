@@ -187,10 +187,10 @@ const AccountViewPage = () => {
                 }
             ]);
             
-        
-            await supabase.from("Chart_Of_Accounts").update({ 'debit': debit }).eq("account_name", account.account_name).select();
-            await supabase.from("Chart_Of_Accounts").update({ 'credit': credit }).eq("account_name", account.account_name).select();
-            await supabase.from("Chart_Of_Accounts").update({ 'balance': balance }).eq("account_name", account.account_name).select();
+        // Commented out until all transactions from the Solved Problem are added to the database...
+            // await supabase.from("Chart_Of_Accounts").update({ 'debit': debit }).eq("account_name", account.account_name).select();
+            // await supabase.from("Chart_Of_Accounts").update({ 'credit': credit }).eq("account_name", account.account_name).select();
+            // await supabase.from("Chart_Of_Accounts").update({ 'balance': balance }).eq("account_name", account.account_name).select();
 
            
 
