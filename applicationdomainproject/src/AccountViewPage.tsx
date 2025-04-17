@@ -256,7 +256,7 @@ const AccountViewPage = () => {
                                 <tbody>
                                 {accountLogs.map((log) => (
                                     <tr key={log.id}>
-                                        <td>{new Date(log.created_at).toLocaleString()}</td>
+                                        <td>{log.created_at ? new Date(log.created_at).toLocaleDateString() : "Date"}</td>
                                         <td>{log.debit}</td>
                                         <td>{log.credit}</td>
                                         <td>{log.balance}</td>
@@ -289,7 +289,11 @@ const AccountViewPage = () => {
                 ) : (
                     transactions.map((txn) => (
                         <tr key={txn.id}>
-                            <td>{new Date(txn.created_at).toLocaleDateString()}</td>
+                            <td>
+                                {txn.created_at && !isNaN(Date.parse(txn.created_at))
+                                    ? new Date(txn.created_at).toLocaleDateString()
+                                    : "Date"}
+                            </td>
                             <td>{txn.description}</td>
                             <td>{txn.debit ? `$${txn.debit}` : "-"}</td>
                             <td>{txn.credit ? `$${txn.credit}` : "-"}</td>
