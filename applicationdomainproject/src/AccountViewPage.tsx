@@ -165,7 +165,7 @@ const AccountViewPage = () => {
     if (loading) return <p>Loading...</p>;
     if (!account) return <p>Account not found</p>;
 
-    const PublishAccountLog = async (account: Account, change: string) => {
+    const PublishAccountLog = async (account: Account, debit: number, credit:number, balance:number, change: string) => {
         const { error } = await supabase
             .from('Chart_Of_Accounts_Change_Log')
             .insert([
@@ -177,15 +177,22 @@ const AccountViewPage = () => {
                     account_catagory: account.account_catagory,
                     account_subcatagory: account.account_subcatagory,
                     initial_balance: account.initial_balance,
-                    debit: account.debit,
-                    credit: account.credit,
-                    balance: account.balance,
+                    debit: debit,
+                    credit: credit,
+                    balance: balance,
                     user_id: account.user_id,
                     order: account.order,
                     statement: account.statement,
                     edited_by: change
                 }
             ]);
+            
+        // Commented out until all transactions from the Solved Problem are added to the database...
+            // await supabase.from("Chart_Of_Accounts").update({ 'debit': debit }).eq("account_name", account.account_name).select();
+            // await supabase.from("Chart_Of_Accounts").update({ 'credit': credit }).eq("account_name", account.account_name).select();
+            // await supabase.from("Chart_Of_Accounts").update({ 'balance': balance }).eq("account_name", account.account_name).select();
+
+           
 
         if (error) {
             console.error("Error inserting account log:", error);
@@ -226,7 +233,7 @@ const AccountViewPage = () => {
             <button className="view-button" onClick={fetchAccountLogs}>
                 View Account History
             </button>
-            <button onClick={() => PublishAccountLog(account, "viewed")} className="view-button">
+            <button onClick={() => PublishAccountLog(account, totalDebit, totalCredit, balance, "viewed")} className="view-button">
                 Back to Accounts
             </button>
 
