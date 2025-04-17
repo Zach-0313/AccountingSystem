@@ -11,6 +11,7 @@ interface Account {
   account_name: string;
   balance: number;
   normal_side: number; // 0 = Debit, 1 = Credit
+  account_subcatagory: string;
 }
 
 interface TrialBalance {
@@ -34,7 +35,7 @@ const TrialBalanceComponent = () => {
     const fetchAccounts = async () => {
       const { data, error } = await supabase
         .from('Chart_Of_Accounts')
-        .select('id, account_name, balance, normal_side');
+        .select('id, account_name, balance, normal_side, account_subcatagory');
 
       if (error) {
         console.error('Error fetching trial balance accounts:', error);
@@ -42,6 +43,9 @@ const TrialBalanceComponent = () => {
       }
 
       const accounts = data?.map((acc) => {
+        if(acc.account_subcatagory === "retained earnings"){
+            acc.balance = 0;
+        }
         const isDebit = acc.normal_side === 0;
         return {
           id: acc.id,
