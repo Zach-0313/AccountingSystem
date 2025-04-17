@@ -179,7 +179,7 @@ const AccountsJournalizing = () => {
                                             className="w-full border rounded p-1"
                                         >
                                             <option value="">Select Account</option>
-                                            {accounts.map((acct : any) => (
+                                            {accounts.map((acct: any) => (
                                                 <option key={acct.id} value={acct.id}>
                                                     {acct.account_name}
                                                 </option>
@@ -214,8 +214,26 @@ const AccountsJournalizing = () => {
                             </tbody>
                         </table>
 
-                        {/* Entry description */}
-                        <div className="mt-2">
+                        {/* Add Line Button */}
+                        <div className="mt-3">
+                            <button
+                                onClick={() => addLine(entryIndex)}
+                                style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: '#007bff',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem'
+                                }}
+                            >
+                                ➕ Add Line to Entry
+                            </button>
+                        </div>
+
+                        {/* Entry Description */}
+                        <div className="mt-4">
                             <label className="text-sm font-medium">Entry Description</label>
                             <input
                                 type="text"
@@ -225,11 +243,11 @@ const AccountsJournalizing = () => {
                                 placeholder="Enter description..."
                             />
                         </div>
+
+                        {/* Error Message */}
                         {!isBalanced(entry.lines) && (
                             <div style={{ color: 'red', fontWeight: 'bold', marginTop: '8px' }}>
-                            <p>
-                                This entry is not balanced. Total debits must equal total credits.
-                            </p>
+                                <p>This entry is not balanced. Total debits must equal total credits.</p>
                             </div>
                         )}
 
@@ -239,37 +257,61 @@ const AccountsJournalizing = () => {
                             <div>Total Credit: ${totals.credit.toFixed(2)}</div>
                         </div>
 
-                        <div className="mt-2 flex gap-2">
-                            <button onClick={() => addLine(entryIndex)} className="text-blue-600">
-                                + Add Line
-                            </button>
-                            <button onClick={() => removeEntry(entryIndex)} className="text-red-500">
-                                Remove Entry
+                        {/* Remove Entry Button */}
+                        <div className="mt-4">
+                            <button
+                                onClick={() => removeEntry(entryIndex)}
+                                style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem'
+                                }}
+                            >
+                                Remove This Entry
                             </button>
                         </div>
                     </div>
                 );
             })}
 
-            <div className="flex gap-4">
-                <button onClick={addEntry} className="bg-blue-600 text-white px-4 py-2 rounded">
-                    + Add New Entry
+            {/* Add & Submit Buttons */}
+            <div className="flex gap-4 mt-6">
+                <button
+                    onClick={addEntry}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem'
+                    }}
+                >
+                    ➕ Add New Journal Entry
                 </button>
+
                 <button
                     onClick={submitEntries}
                     disabled={!allEntriesBalanced || loading}
                     style={{
-                        padding: '8px 16px',
+                        padding: '6px 12px',
                         borderRadius: '4px',
                         color: 'white',
                         backgroundColor: !allEntriesBalanced || loading ? 'gray' : 'green',
                         cursor: !allEntriesBalanced || loading ? 'not-allowed' : 'pointer',
                         border: 'none',
+                        fontWeight: '500',
+                        fontSize: '0.875rem'
                     }}
                 >
-                    Submit Entries
+                    Submit
                 </button>
-
             </div>
 
             {feedbackMessage && (
