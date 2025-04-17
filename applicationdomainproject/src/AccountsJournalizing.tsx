@@ -226,9 +226,11 @@ const AccountsJournalizing = () => {
                             />
                         </div>
                         {!isBalanced(entry.lines) && (
-                            <p className="text-red-500 mt-1 text-sm">
+                            <div style={{ color: 'red', fontWeight: 'bold', marginTop: '8px' }}>
+                            <p>
                                 This entry is not balanced. Total debits must equal total credits.
                             </p>
+                            </div>
                         )}
 
                         {/* Running Totals */}
@@ -256,9 +258,14 @@ const AccountsJournalizing = () => {
                 <button
                     onClick={submitEntries}
                     disabled={!allEntriesBalanced || loading}
-                    className={`px-4 py-2 rounded text-white ${
-                        !allEntriesBalanced || loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
-                    }`}
+                    style={{
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        color: 'white',
+                        backgroundColor: !allEntriesBalanced || loading ? 'gray' : 'green',
+                        cursor: !allEntriesBalanced || loading ? 'not-allowed' : 'pointer',
+                        border: 'none',
+                    }}
                 >
                     Submit Entries
                 </button>
