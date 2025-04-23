@@ -66,3 +66,64 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+.ratios-footer {
+  padding: 5px;
+  background-color: #f9f9f9;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.footer-grid {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.footer-column {
+  width: 18%;
+}
+
+.footer-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-column li {
+  margin: 5px 0;
+}
+
+.footer-column a {
+  text-decoration: none;
+  color: #007bff;
+  transition: color 0.2s;
+  font-size: 10px;
+}
+
+.footer-column a:hover {
+  color: #0056b3;
+}
+
+.definition-popup {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 2px;
+  width: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.question-mark {
+  cursor: pointer;
+  color: #007bff;
+  margin-left: 10px;
+}

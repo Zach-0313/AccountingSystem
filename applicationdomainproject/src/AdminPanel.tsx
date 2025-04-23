@@ -3,13 +3,13 @@ import './App.css';
 import './index.css';
 import BaseUser from "./User/BaseUser";
 import BasePassword from "./User/BasePassword";
-import { createClient } from "@supabase/supabase-js"; // Ensure you import Supabase client
+import { createClient } from "@supabase/supabase-js";
 import Header from "./Header";
 import { Link } from "react-router-dom";
 import HelpButton from "./HelpButton.tsx";
 
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZngxcnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const AdminPanel = () => {
@@ -23,9 +23,8 @@ const AdminPanel = () => {
     const [role, setRole] = useState<"admin" | "user" | "manager">("user");
     const [isActive, setIsActive] = useState<boolean>(false);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
-    const [adminRole, setAdminRole] = useState<boolean>(false); // Track if the current user is an admin
+    const [adminRole, setAdminRole] = useState<boolean>(false);
 
-    // 🔹 Fetch Users from Supabase on Mount
     useEffect(() => {
         const getUserTable = async () => {
             const res = await supabase.from("User_Credentials").select("id, user");
@@ -33,12 +32,11 @@ const AdminPanel = () => {
                 console.error("Error fetching users:", res.error);
                 return;
             }
-            const currentUserRole = "admin"; // This should be dynamically set based on the logged-in user's role
+            const currentUserRole = "admin";
             setAdminRole(currentUserRole === "admin");
 
             const newUsers = res.data?.map(entry => BaseUser.fromJSON(entry.user)) || [];
 
-            // Ensure unique users using a Map
             setUsers(prevUsers => [
                 ...new Map([...prevUsers, ...newUsers].map(user => [user.id, user])).values()
             ]);
@@ -47,7 +45,6 @@ const AdminPanel = () => {
         getUserTable();
     }, []);
 
-    // 🔹 Handle Create or Update User
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newUser = new BaseUser(
@@ -63,25 +60,20 @@ const AdminPanel = () => {
         );
 
         if (editingUserId) {
-            // Update user in Supabase
             await supabase.from("User_Credentials").update({ user: newUser.toJSON() }).eq("id", editingUserId);
             setEditingUserId(null);
         } else {
-            // Insert new user
             await supabase.from("User_Credentials").insert([{ id: newUser.id, user: newUser.toJSON() }]);
         }
 
-        // Refresh user list
         setUsers(prevUsers => [
             ...new Map([...prevUsers, newUser].map(user => [user.id, user])).values()
         ]);
 
-        // Reset form fields
         setUsername(""); setPassword(""); setFirstName(""); setLastName("");
         setDateOfBirth("0000-00-00"); setEmail(""); setRole("user"); setIsActive(true);
     };
 
-    // 🔹 Handle Edit User
     const handleEdit = (user: BaseUser) => {
         setUsername(user.username);
         setPassword(user.password.GetPassword());
@@ -94,7 +86,6 @@ const AdminPanel = () => {
         setEditingUserId(user.id);
     };
 
-    // 🔹 Toggle Active State
     const toggleActive = async (id: string) => {
         const userToUpdate = users.find(user => user.id === id);
         if (userToUpdate) {
@@ -115,12 +106,10 @@ const AdminPanel = () => {
                 return;
             }
 
-            // Update the users state to reflect the change
             setUsers(prevUsers => prevUsers.map(user => user.id === id ? updatedUser : user));
         }
     };
 
-    // 🔹 Get Time of Day Greeting
     const getTimeOfDayGreeting = () => {
         const currentHour = new Date().getHours();
         if (currentHour < 12) return "Good Morning";
@@ -131,8 +120,8 @@ const AdminPanel = () => {
     return (
         <div>
             <Header label="User Management" />
-            <>
-                {/* Form */}
+
+            <div style={{ maxHeight: "80vh", overflowY: "auto", padding: "20px" }}>
                 <form onSubmit={handleSubmit} style={formStyle}>
                     <div className="create-user">
                         <div><label>Username:</label><input type="text" value={username} onChange={e => setUsername(e.target.value)} required /></div>
@@ -151,7 +140,6 @@ const AdminPanel = () => {
                     <button type="submit">{editingUserId ? "Update User" : "Create User"}</button>
                 </form>
 
-                {/* User Table */}
                 <h3>Users</h3>
                 <table>
                     <thead>
@@ -162,7 +150,7 @@ const AdminPanel = () => {
                     </thead>
                     <tbody>
                     {users.map(user => {
-                        const greeting = getTimeOfDayGreeting(); // Get appropriate greeting
+                        const greeting = getTimeOfDayGreeting();
                         const subject = `Hello ${user.firstName} ${user.lastName}`;
                         const body = `${greeting}, ${user.firstName} ${user.lastName}.`;
 
@@ -172,19 +160,20 @@ const AdminPanel = () => {
                                     <Link to={`/add-account/${user.id}`} style={{ textDecoration: 'none', color: 'blue' }}>
                                         {user.username}
                                     </Link>
-
                                 </td>
 
                                 <td>{user.password.GetPassword()}</td>
                                 <td>{user.firstName}</td>
                                 <td>{user.lastName}</td>
                                 <td>{user.dob}</td>
-                                <td> <a
-                                    href={`mailto:${user.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
-                                    style={{ textDecoration: 'none', color: 'blue' }}
-                                >
-                                    {user.email}
-                                </a></td>
+                                <td>
+                                    <a
+                                        href={`mailto:${user.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+                                        style={{ textDecoration: 'none', color: 'blue' }}
+                                    >
+                                        {user.email}
+                                    </a>
+                                </td>
                                 <td>{user.role}</td>
                                 <td>{user.is_active ? "Yes" : "No"}</td>
                                 <td>
@@ -200,7 +189,8 @@ const AdminPanel = () => {
                                         }}
                                     >
                                         {user.is_active ? "Active" : "Toggle to Activate"}
-                                    </button>                                    </td>
+                                    </button>
+                                </td>
                             </tr>
                         );
                     })}
@@ -209,15 +199,11 @@ const AdminPanel = () => {
                 <Link to="/admin">
                     <button style={buttonStyle}>Back to Admin Hub</button>
                 </Link>
+            </div>
 
-            </>
-
-            {/* Help Button */}
             <HelpButton />
         </div>
-
     );
-
 };
 
 const buttonStyle = { backgroundColor: "#e44d26", color: "white", border: "none", padding: "10px 20px", cursor: "pointer", borderRadius: "5px" };
