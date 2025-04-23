@@ -113,7 +113,7 @@ export default function LoginScreen() {
                     if (potentialUser.role === "admin") {
                         navigate("/admin");
                     } else {
-                        navigate("/accounts");
+                        navigate("/dashboard");
                     }
                 } else {
                     setError("User is deactivated");

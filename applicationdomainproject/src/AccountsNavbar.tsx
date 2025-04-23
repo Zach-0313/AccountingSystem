@@ -5,6 +5,7 @@ const AccountsNavbar = () => {
     return (
         <nav className="navbar">
             <ul>
+                <li><Link to="/dashboard">Back to Dashboard</Link></li>
                 <li><Link to="/accounts">Accounts</Link></li>
                 <li><Link to="/accounts/journalizing">Journalizing</Link></li>
                 <li><Link to="/accounts/Reports">Reports</Link></li>

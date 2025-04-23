@@ -8,15 +8,16 @@ import AccountsJournalizing from "./AccountsJournalizing";
 import ExpiredUser from "./ExpiredUser.tsx";
 import AddAccountForm from "./AddAccountForm.tsx";
 import ReportScreen from "./ReportsScreen.tsx";
-
-
 import PendingJournalEntries from "./PendingJournalEntries";
+import LandingPage from "./LandingPage.tsx";
+
 export default function AppRoutes() {
     return (
         <Router>
             <Routes>
                 <Route path="/" element={<LoginScreen />} />
                 <Route path="/admin" element={<AdminHub />} />
+                <Route path="/dashboard" element={<LandingPage />} />
                 <Route path="/admin/usermanagement" element={<AdminPanel />} />
                 <Route path="/accounts" element={<AccountView />} />
                 <Route path="/accounts/journalizing" element={<AccountsJournalizing />} />
