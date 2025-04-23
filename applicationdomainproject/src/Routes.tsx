@@ -11,6 +11,7 @@ import ReportScreen from "./ReportsScreen.tsx";
 
 
 import PendingJournalEntries from "./PendingJournalEntries";
+import LandingPage from "./LandingPage.tsx";
 export default function AppRoutes() {
     return (
         <Router>
@@ -26,7 +27,7 @@ export default function AppRoutes() {
                 <Route path="/add-account/:userId" element={<AddAccountForm />} />
                 <Route path="/admin/AddAccount" element={<AddAccountForm />} />
                 <Route path="/admin/approveJournalEntries" element={<PendingJournalEntries /> } />
-
+                <Route path="/landing-page" element={<LandingPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>
