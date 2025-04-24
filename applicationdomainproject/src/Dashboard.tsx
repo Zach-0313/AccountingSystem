@@ -34,7 +34,7 @@ const Dashboard = () => {
   ).reduce((sum, acc) => sum + acc.balance, 0);
 
   const currentLiabilities = accounts.filter(
-    (a) => a.account_catagory === "liability" && a.account_subcatagory === "liabilities"
+    (a) => a.account_catagory === "liability" && a.account_subcatagory === "liability"
   ).reduce((sum, acc) => sum + acc.balance, 0);
 
   const totalLiabilities = accounts.filter((a) => a.account_catagory === "liability")
