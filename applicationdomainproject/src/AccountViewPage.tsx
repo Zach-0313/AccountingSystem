@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
-import HelpButton from "./HelpButton.tsx";
 
 // Supabase setup
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
@@ -9,315 +8,412 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 interface Transaction {
-    id: number;
+    id: number;           // ID of Journal_Entry_Line (the real line ID)
+    journal_id: number;    // ID of Journal_Entry (the journal entry)
     description: string;
     debit: number;
     credit: number;
     created_at: string;
-}
+    status: "Approved" | "Pending" | "Rejected";  // Optional: to show status
+    attachment_url: string | null;  // Add this line to handle attachment_url
+  }
+  
 
 interface RawTransaction {
-    journal_id: number;
-    debit: number;
-    credit: number;
-    account_id: number;
-    created_at: string | null;
-
-    Journal_Entries?: {
-        description: string;
-    }[];
+  journal_id: number;
+  debit: number;
+  credit: number;
+  account_id: number;
+  created_at: string | null;
+  Journal_Entries?: {
+    description: string;
+    status: string;
+    created_at: string;
+  }[];
 }
 
-
-
-
 interface Account {
-    id: number;
-    date: string;
-    created_at: string;
-    account_name: string;
-    account_number: number;
-    account_description: string;
-    normal_side: number;
-    account_catagory: string;
-    account_subcatagory: string;
-    initial_balance: number;
-    debit: number;
-    credit: number;
-    balance: number;
-    user_id: number;
-    order: string;
-    statement: string;
-    comment: string;
+  id: number;
+  date: string;
+  created_at: string;
+  account_name: string;
+  account_number: number;
+  account_description: string;
+  normal_side: number;
+  account_catagory: string;
+  account_subcatagory: string;
+  initial_balance: number;
+  debit: number;
+  credit: number;
+  balance: number;
+  user_id: number;
+  order: string;
+  statement: string;
+  comment: string;
+}
+
+interface AccountLog {
+  id: number;
+  created_at: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  edited_by: string;
 }
 
 const AccountViewPage = () => {
-    const { id } = useParams<{ id: string }>(); // Get account ID from URL params
-    const navigate = useNavigate(); // useNavigate must be inside a React component
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [account, setAccount] = useState<Account | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [accountLogs, setAccountLogs] = useState<AccountLog[]>([]);
-    const [accountNumber, setAccountNumber] = useState<number>();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [totalDebit, setTotalDebit] = useState(0);
     const [totalCredit, setTotalCredit] = useState(0);
     const [balance, setBalance] = useState(0);
-
-
+  
     useEffect(() => {
-        const fetchAccount = async () => {
-            if (!id) return; // If no ID, don't try to fetch
-            const { data, error } = await supabase
-                .from("Chart_Of_Accounts")
-                .select("*")
-                .eq("id", id)
-                .single();
-
-            if (error) {
-                console.error("Error fetching account:", error);
-                setLoading(false);
-            } else {
-                setAccount(data);
-                setAccountNumber(account?.account_number);
-                setLoading(false);
-            }
-        };
-        fetchAccount();
-    }, [id]);
-    useEffect(() => {
-        const fetchTransactions = async () => {
-            if (!account?.account_number) return;
-
-            const { data, error } = await supabase
-                .from("Journal_Entry_Lines")
-                .select(`
-                journal_id,
-                debit,
-                credit,
-                account_id,
-                Journal_Entries (
-                    description,
-                    created_at
-                )
-            `)
-                .eq("account_id", account.account_number)
-                .order("journal_id", { ascending: false });
-
-            if (error) {
-                console.error("Error fetching transactions:", error.message);
-                return;
-            }
-
-            const formatted = (data as RawTransaction[]).map((entry) => {
-                const journal = entry.Journal_Entries as { description?: string; created_at?: string } | null;
-
-                return {
-                    id: entry.journal_id,
-                    description: journal?.description ?? "No description",
-                    debit: entry.debit,
-                    credit: entry.credit,
-                    created_at: entry.created_at
-                        ? new Date(entry.created_at).toLocaleDateString()
-                        : "Unknown date",
-                };
-            });
-            console.log("Raw data entries:", data);
-
-
-
-            setTransactions(formatted || []);
-            const totalDebit = formatted.reduce((acc, tx) => acc + (tx.debit || 0), 0);
-            const totalCredit = formatted.reduce((acc, tx) => acc + (tx.credit || 0), 0);
-            const balance = totalDebit - totalCredit;
-
-// Optional: if you want to use them in JSX, save them in state:
-            setTotalDebit(totalDebit);
-            setTotalCredit(totalCredit);
-            setBalance(balance);
-
-            setLoading(false);
-        };
-
-        fetchTransactions();
-    }, [account]);
-
-
-    const fetchAccountLogs = async () => {
+      const fetchAccount = async () => {
         if (!id) return;
         const { data, error } = await supabase
-            .from("Chart_Of_Accounts_Change_Log")
-            .select("*")
-            .eq("account_id", id) // Fetch logs for this account
-            .order("created_at", { ascending: false })
-            .limit(10);
-
+          .from("Chart_Of_Accounts")
+          .select("*")
+          .eq("id", id)
+          .single();
+  
         if (error) {
-            console.error("Error fetching account logs:", error);
+          console.error("Error fetching account:", error);
+          setLoading(false);
         } else {
-            setAccountLogs(data);
-            setIsPopupOpen(true); // Open popup after fetching data
+          setAccount(data);
+          setLoading(false);
         }
+      };
+      fetchAccount();
+    }, [id]);
+  
+    useEffect(() => {
+      const fetchTransactions = async () => {
+        if (!account?.account_number) return;
+    
+        // Fetch Journal Entry Lines
+        const { data: linesData, error: linesError } = await supabase
+        .from("Journal_Entry_Lines")
+        .select("*")
+        .eq("account_id", account.account_number)
+        .order("created_at", { ascending: false });
+      
+        if (linesError) {
+          console.error("Error fetching journal entry lines:", linesError);
+          return;
+        }
+  
+        const uniqueJournalIds = [...new Set(
+          linesData.map((line) => line.journal_id).filter((id) => id !== null)
+        )];
+      
+        // Fetch corresponding Journal Entries
+        let journalEntryMap = new Map<number, { description: string; status: string; created_at: string, attachment_url: string | null }>();
+    
+        if (uniqueJournalIds.length > 0) {
+          const { data: journalsData, error: journalsError } = await supabase
+            .from("Journal_Entries")
+            .select("journal_id, description, status, created_at, attachment_url")
+            .in("journal_id", uniqueJournalIds);
+    
+          if (journalsError) {
+            console.error("Error fetching journal entries:", journalsError);
+            return;
+          }
+    
+          journalsData?.forEach((entry) => {
+            journalEntryMap.set(entry.journal_id, {
+              description: entry.description,
+              status: entry.status,
+              created_at: entry.created_at,
+              attachment_url: entry.attachment_url,
+            });
+          });
+        }
+      
+        // Merge the data
+        const mergedTransactions: Transaction[] = linesData.map((line) => {
+            const journalEntry = journalEntryMap.get(line.journal_id);
+          
+            return {
+              id: line.id,
+              journal_id: line.journal_id,
+              description: journalEntry?.description ?? "No description",
+              status: journalEntry?.status ?? "Approved",
+              debit: line.debit,
+              credit: line.credit,
+              created_at: (journalEntry?.created_at ?? line.created_at)
+                ? new Date(journalEntry?.created_at ?? line.created_at).toLocaleDateString()
+                : "Unknown",
+              attachment_url: journalEntry?.attachment_url ?? null,  // Add attachment_url here
+            };
+          });
+          
+      
+        const approvedTransactions = mergedTransactions.filter(
+          (tx) => tx.status === "Approved"
+        );
+      
+        const totalDebit = approvedTransactions.reduce(
+          (acc, tx) => acc + (tx.debit || 0),
+          0
+        );
+        const totalCredit = approvedTransactions.reduce(
+          (acc, tx) => acc + (tx.credit || 0),
+          0
+        );
+        const balance = totalDebit - totalCredit;
+      
+        setTransactions(mergedTransactions);
+        setTotalDebit(totalDebit);
+        setTotalCredit(totalCredit);
+        setBalance(balance);
+        setLoading(false);
+      };
+    
+      fetchTransactions();
+    }, [account]);
+  
+    const fetchAccountLogs = async () => {
+      if (!id) return;
+      const { data, error } = await supabase
+        .from("Chart_Of_Accounts_Change_Log")
+        .select("*")
+        .eq("account_id", id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+  
+      if (error) {
+        console.error("Error fetching account logs:", error);
+      } else {
+        setAccountLogs(data);
+        setIsPopupOpen(true);
+      }
     };
-
+  
     const closePopup = () => setIsPopupOpen(false);
-
-    if (loading) return <p>Loading...</p>;
-    if (!account) return <p>Account not found</p>;
-
-    const PublishAccountLog = async (account: Account, debit: number, credit:number, balance:number, change: string) => {
-        const { error } = await supabase
-            .from('Chart_Of_Accounts_Change_Log')
-            .insert([
-                {
-                    account_name: account.account_name,
-                    account_id: account.id,
-                    account_description: account.account_description,
-                    normal_side: account.normal_side,
-                    account_catagory: account.account_catagory,
-                    account_subcatagory: account.account_subcatagory,
-                    initial_balance: account.initial_balance,
-                    debit: debit,
-                    credit: credit,
-                    balance: balance,
-                    user_id: account.user_id,
-                    order: account.order,
-                    statement: account.statement,
-                    edited_by: change
-                }
-            ]);
-            
-        // Commented out until all transactions from the Solved Problem are added to the database...
-            // await supabase.from("Chart_Of_Accounts").update({ 'debit': debit }).eq("account_name", account.account_name).select();
-            // await supabase.from("Chart_Of_Accounts").update({ 'credit': credit }).eq("account_name", account.account_name).select();
-            // await supabase.from("Chart_Of_Accounts").update({ 'balance': balance }).eq("account_name", account.account_name).select();
-
-           
-
-        if (error) {
-            console.error("Error inserting account log:", error);
-        } else {
-            navigate(-1); // Navigate back on success
-        }
+  
+    const PublishAccountLog = async (
+      account: Account,
+      debit: number,
+      credit: number,
+      balance: number,
+      change: string
+    ) => {
+      const { error } = await supabase.from("Chart_Of_Accounts_Change_Log").insert([
+        {
+          account_name: account.account_name,
+          account_id: account.id,
+          account_description: account.account_description,
+          normal_side: account.normal_side,
+          account_catagory: account.account_catagory,
+          account_subcatagory: account.account_subcatagory,
+          initial_balance: account.initial_balance,
+          debit: debit,
+          credit: credit,
+          balance: balance,
+          user_id: account.user_id,
+          order: account.order,
+          statement: account.statement,
+          edited_by: change,
+        },
+      ]);
+             await supabase.from("Chart_Of_Accounts").update({ 'debit': debit }).eq("account_name", account.account_name).select();
+             await supabase.from("Chart_Of_Accounts").update({ 'credit': credit }).eq("account_name", account.account_name).select();
+             await supabase.from("Chart_Of_Accounts").update({ 'balance': balance }).eq("account_name", account.account_name).select();
+      if (error) {
+        console.error("Error inserting account log:", error);
+      } else {
+        navigate(-1);
+      }
     };
-
+  
+    async function handleViewAttachment(attachmentUrl: string) {
+        if (!attachmentUrl) {
+            alert("No attachment available for this entry.");
+            return;
+        }
+    
+        const pathStartIndex = attachmentUrl.indexOf("attachments/");
+        if (pathStartIndex === -1) {
+            alert("Invalid attachment URL.");
+            return;
+        }
+    
+        const filePath = attachmentUrl.substring(pathStartIndex); // e.g., "attachments/file.pdf"
+    
+        const { data, error } = await supabase.storage
+            .from('journal-attachments') // <-- your real bucket name
+            .createSignedUrl(filePath, 60); // valid for 60 seconds
+    
+        if (error || !data) {
+            console.error("Error generating signed URL:", error);
+            alert("Unable to access attachment.");
+        } else {
+            window.open(data.signedUrl, "_blank");
+        }
+    }
+  
     if (loading) return <p>Loading...</p>;
     if (!account) return <p>Account not found</p>;
-
+  
     return (
-        <div className="container">
-            <h1>Account {account.account_number} Details</h1>
-            <form>
-                <div>
-                    <label>Account Name:</label>
-                    <input type="text" value={account.account_name} readOnly />
-                </div>
-                <div>
-                    <label>Account Number:</label>
-                    <input type="text" value={account.account_number} readOnly />
-                </div>
-                <div>
-                    <label>Description:</label>
-                    <input type="text" value={account.account_description} readOnly />
-                </div>
-                <div>
-                    <label>Category:</label>
-                    <input type="text" value={account.account_catagory} readOnly />
-                </div>
-                <div>
-                    <label>Balance:</label>
-                    <input type="number" value={account.balance} readOnly />
-                </div>
-            </form>
-
-            <button className="view-button" onClick={fetchAccountLogs}>
-                View Account History
-            </button>
-            <button onClick={() => PublishAccountLog(account, totalDebit, totalCredit, balance, "viewed")} className="view-button">
-                Back to Accounts
-            </button>
-
-            {isPopupOpen && (
-                <div className="popup-overlay">
-                    <div className="popup">
-                        <h2>Account Change History</h2>
-                        <button className="close-button" onClick={closePopup}>×</button>
-                        {accountLogs.length > 0 ? (
-                            <table>
-                                <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Debit</th>
-                                    <th>Credit</th>
-                                    <th>Balance</th>
-                                    <th>Action Performed</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {accountLogs.map((log) => (
-                                    <tr key={log.id}>
-                                        <td>{log.created_at ? new Date(log.created_at).toLocaleDateString() : "Date"}</td>
-                                        <td>{log.debit}</td>
-                                        <td>{log.credit}</td>
-                                        <td>{log.balance}</td>
-                                        <td>{log.edited_by}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <p>No history found.</p>
-                        )}
-                    </div>
-                </div>
-            )}
-            <h2>Ledger Transactions</h2>
-            <table>
-                <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                </tr>
-                </thead>
-                <tbody>
-                {transactions.length === 0 ? (
+      <div className="container">
+        <h1>Account {account.account_number} Details</h1>
+        {/* Account Form */}
+        <form>
+          <div>
+            <label>Account Name:</label>
+            <input type="text" value={account.account_name} readOnly />
+          </div>
+          <div>
+            <label>Account Number:</label>
+            <input type="text" value={account.account_number} readOnly />
+          </div>
+          <div>
+            <label>Description:</label>
+            <input type="text" value={account.account_description} readOnly />
+          </div>
+          <div>
+            <label>Category:</label>
+            <input type="text" value={account.account_catagory} readOnly />
+          </div>
+          <div>
+            <label>Balance:</label>
+            <input type="number" value={account.balance} readOnly />
+          </div>
+        </form>
+  
+        {/* Account Log View Button */}
+        <button className="view-button" onClick={fetchAccountLogs}>
+          View Account History
+        </button>
+        <button
+          onClick={() =>
+            PublishAccountLog(account, totalDebit, totalCredit, balance, "viewed")
+          }
+          className="view-button"
+        >
+          Back to Accounts
+        </button>
+  
+        {isPopupOpen && (
+          <div className="popup-overlay">
+            <div className="popup">
+              <h2>Account Change History</h2>
+              <button className="close-button" onClick={closePopup}>
+                ×
+              </button>
+              {accountLogs.length > 0 ? (
+                <table>
+                  <thead>
                     <tr>
-                        <td colSpan={4}>No transactions found</td>
+                      <th>Date</th>
+                      <th>Debit</th>
+                      <th>Credit</th>
+                      <th>Balance</th>
+                      <th>Action Performed</th>
                     </tr>
-                ) : (
-                    transactions.map((txn) => (
-                        <tr key={txn.id}>
-                            <td>
-                                {txn.created_at && !isNaN(Date.parse(txn.created_at))
-                                    ? new Date(txn.created_at).toLocaleDateString()
-                                    : "Date"}
-                            </td>
-                            <td>{txn.description}</td>
-                            <td>{txn.debit ? `$${txn.debit}` : "-"}</td>
-                            <td>{txn.credit ? `$${txn.credit}` : "-"}</td>
-                        </tr>
-                    ))
-                )}
-                </tbody>
-                <tfoot>
-                <tr>
-                    <td><strong>Total</strong></td>
-                    <td></td>
-                    <td><strong>${totalDebit.toFixed(2)}</strong></td>
-                    <td><strong>${totalCredit.toFixed(2)}</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Balance</strong></td>
-                    <td colSpan={3}><strong>${balance.toFixed(2)}</strong></td>
-                </tr>
-                </tfoot>
+                  </thead>
+                  <tbody>
+                    {accountLogs.map((log) => (
+                      <tr key={log.id}>
+                        <td>
+                          {log.created_at
+                            ? new Date(log.created_at).toLocaleDateString()
+                            : "Date"}
+                        </td>
+                        <td>{log.debit}</td>
+                        <td>{log.credit}</td>
+                        <td>{log.balance}</td>
+                        <td>{log.edited_by}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No history found.</p>
+              )}
+            </div>
+          </div>
+        )}
+  
+        <h2>Ledger Transactions</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Debit</th>
+              <th>Credit</th>
+              <th>Status</th>
+              <th>Attachment</th>
+            </tr>
+          </thead>
+          <tbody>
+  {transactions.length === 0 ? (
+    <tr>
+      <td colSpan={6}>No transactions found</td>
+    </tr>
+  ) : (
+    transactions.map((txn) => (
+      <tr key={`${txn.id}-${txn.journal_id}`}>
+        <td>{txn.created_at}</td>
+        <td>{txn.description}</td>
+        <td>{txn.debit ? `$${txn.debit.toFixed(2)}` : "-"}</td>
+        <td>{txn.credit ? `$${txn.credit.toFixed(2)}` : "-"}</td>
+        <td>
+          {txn.status === "Approved" && <span style={{ color: "green" }}>✔ Approved</span>}
+          {txn.status === "Pending" && <span style={{ color: "orange" }}>⏳ Pending</span>}
+          {txn.status === "Rejected" && <span style={{ color: "red" }}>❌ Rejected</span>}
+        </td>
+        <td>
+          {txn.attachment_url && (
+            <button
+              onClick={() => handleViewAttachment(txn.attachment_url? txn.attachment_url : "no attachment")}
+              className="view-attachment-button"
+            >
+              View Attachment
+            </button>
+          )}
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
 
-            </table>
-
-        </div>
-    );
+        <tfoot>
+          <tr>
+            <td>
+              <strong>Total</strong>
+            </td>
+            <td></td>
+            <td>
+              <strong>${totalDebit.toFixed(2)}</strong>
+            </td>
+            <td>
+              <strong>${totalCredit.toFixed(2)}</strong>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Balance</strong>
+            </td>
+            <td colSpan={4}>
+              <strong>${balance.toFixed(2)}</strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
 };
 
 export default AccountViewPage;
