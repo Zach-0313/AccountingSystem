@@ -13,10 +13,8 @@ const AccountsJournalizing = () => {
     const [entries, setEntries] = useState([
         {
             description: "",
-            lines: [
-                { account_id: "", debit: "", credit: "" },
-                { account_id: "", debit: "", credit: "" }
-            ]
+            lines: [{ account_id: "", debit: "", credit: "" }],
+            file: null as File | null, // Added
         }
     ]);
 
@@ -47,19 +45,22 @@ const AccountsJournalizing = () => {
         setEntries(updated);
     };
 
+    const handleFileChange = (entryIndex: number, file: File | null) => {
+        const updated = [...entries];
+        updated[entryIndex].file = file;
+        setEntries(updated);
+    };
+
     const addEntry = () => {
         setEntries([
             ...entries,
             {
                 description: "",
-                lines: [
-                    { account_id: "", debit: "", credit: "" },
-                    { account_id: "", debit: "", credit: "" }
-                ]
+                lines: [{ account_id: "", debit: "", credit: "" }],
+                file: null,
             }
         ]);
     };
-
 
     const addLine = (entryIndex) => {
         const updated = [...entries];
@@ -90,7 +91,6 @@ const AccountsJournalizing = () => {
         return totals.debit === totals.credit;
     };
 
-
     const submitEntries = async () => {
         setLoading(true);
         try {
@@ -103,35 +103,69 @@ const AccountsJournalizing = () => {
                     return;
                 }
             }
-
+    
             for (const entry of entries) {
-                const { data: journalEntry, error } = await supabase
+                // Upload file if exists
+                let attachmentUrl = null;
+                if (entry.file) {
+                    const fileExt = entry.file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
+                    const { data: storageData, error: storageError } = await supabase
+                        .storage
+                        .from('journal-attachments')
+                        .upload(`attachments/${fileName}`, entry.file);
+    
+                    if (storageError) {
+                        console.error(storageError);
+                        throw new Error("Error uploading attachment.");
+                    }
+    
+                    attachmentUrl = storageData?.path;
+                }
+    
+                // Insert Journal Entry
+                const { error: insertError } = await supabase
                     .from("Journal_Entries")
-                    .insert([{ created_at: new Date().toISOString(), status: "Pending", description: entry.description }])
-                    .select()
-                    .single();
-
-                if (error) throw new Error(error.message);
-
-                const entryId = journalEntry.id;
-
+                    .insert([{
+                        created_at: new Date().toISOString(),
+                        status: "Pending",
+                        description: entry.description,
+                        attachment_url: attachmentUrl,
+                    }]);
+    
+                if (insertError) throw new Error(insertError.message);
+    
+                // 🔥 Fetch the latest inserted journal entry by description + attachment_url
+                const { data: fetchedEntry, error: fetchError } = await supabase
+                    .from("Journal_Entries")
+                    .select("journal_id")
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+    
+                if (fetchError || !fetchedEntry || fetchedEntry.length === 0) {
+                    throw new Error("Failed to fetch the newly created journal entry.");
+                }
+    
+                const entryId = fetchedEntry[0].journal_id;
+    
+                // Insert Journal Entry Lines
                 const linesPayload = entry.lines.map((line) => ({
-                    journal_entry_id: entryId,
+                    journal_id: entryId,
                     account_id: parseInt(line.account_id),
                     debit: parseFloat(line.debit) || 0,
                     credit: parseFloat(line.credit) || 0,
-                    description: entry.description,
-                    created_at: new Date().toISOString()
+                    created_at: new Date().toISOString(),
+                    attachment_url: attachmentUrl
                 }));
-
+    console.log("ADDING JOURNAL LINES ID:" + entryId);
                 const { error: linesError } = await supabase
                     .from("Journal_Entry_Lines")
                     .insert(linesPayload);
-
+    
                 if (linesError) throw new Error(linesError.message);
             }
-
-            setEntries([{ description: "", lines: [{ account_id: "", debit: "", credit: "" }] }]);
+    
+            setEntries([{ description: "", lines: [{ account_id: "", debit: "", credit: "" }], file: null }]);
             setFeedbackType("success");
             setFeedbackMessage("Entries submitted successfully!");
         } catch (error) {
@@ -160,57 +194,57 @@ const AccountsJournalizing = () => {
                     <div key={entryIndex} className="border p-4 mb-6 shadow rounded">
                         <table className="w-full border-collapse mt-2">
                             <thead>
-                            <tr className="border-b font-semibold">
-                                <th className="text-left">Account</th>
-                                <th className="text-left">Normal Side</th>
-                                <th>Debit</th>
-                                <th>Credit</th>
-                            </tr>
+                                <tr className="border-b font-semibold">
+                                    <th className="text-left">Account</th>
+                                    <th className="text-left">Normal Side</th>
+                                    <th>Debit</th>
+                                    <th>Credit</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {entry.lines.map((line, lineIndex) => (
-                                <tr key={lineIndex} className="border-b">
-                                    <td>
-                                        <select
-                                            value={line.account_id}
-                                            onChange={(e) =>
-                                                handleLineChange(entryIndex, lineIndex, "account_id", e.target.value)
-                                            }
-                                            className="w-full border rounded p-1"
-                                        >
-                                            <option value="">Select Account</option>
-                                            {accounts.map((acct: any) => (
-                                                <option key={acct.id} value={acct.id}>
-                                                    {acct.account_name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="text-gray-500">
-                                        {getAccountNormalSide(line.account_id)}
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            value={line.debit}
-                                            onChange={(e) =>
-                                                handleLineChange(entryIndex, lineIndex, "debit", e.target.value)
-                                            }
-                                            className="w-full border p-1 rounded"
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            value={line.credit}
-                                            onChange={(e) =>
-                                                handleLineChange(entryIndex, lineIndex, "credit", e.target.value)
-                                            }
-                                            className="w-full border p-1 rounded"
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
+                                {entry.lines.map((line, lineIndex) => (
+                                    <tr key={lineIndex} className="border-b">
+                                        <td>
+                                            <select
+                                                value={line.account_id}
+                                                onChange={(e) =>
+                                                    handleLineChange(entryIndex, lineIndex, "account_id", e.target.value)
+                                                }
+                                                className="w-full border rounded p-1"
+                                            >
+                                                <option value="">Select Account</option>
+                                                {accounts.map((acct: any) => (
+                                                    <option key={acct.id} value={acct.id}>
+                                                        {acct.account_name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </td>
+                                        <td className="text-gray-500">
+                                            {getAccountNormalSide(line.account_id)}
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                value={line.debit}
+                                                onChange={(e) =>
+                                                    handleLineChange(entryIndex, lineIndex, "debit", e.target.value)
+                                                }
+                                                className="w-full border p-1 rounded"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                value={line.credit}
+                                                onChange={(e) =>
+                                                    handleLineChange(entryIndex, lineIndex, "credit", e.target.value)
+                                                }
+                                                className="w-full border p-1 rounded"
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
 
@@ -241,6 +275,17 @@ const AccountsJournalizing = () => {
                                 onChange={(e) => handleEntryChange(entryIndex, "description", e.target.value)}
                                 className="w-full border p-2 mt-1 rounded"
                                 placeholder="Enter description..."
+                            />
+                        </div>
+
+                        {/* File Upload */}
+                        <div className="mt-4">
+                            <label className="text-sm font-medium">Attachment (optional)</label>
+                            <input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                onChange={(e) => handleFileChange(entryIndex, e.target.files?.[0] || null)}
+                                className="w-full border p-2 mt-1 rounded"
                             />
                         </div>
 
