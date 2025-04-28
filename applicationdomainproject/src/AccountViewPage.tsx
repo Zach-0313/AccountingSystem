@@ -224,7 +224,9 @@ const AccountViewPage = () => {
           edited_by: change,
         },
       ]);
-  
+             await supabase.from("Chart_Of_Accounts").update({ 'debit': debit }).eq("account_name", account.account_name).select();
+             await supabase.from("Chart_Of_Accounts").update({ 'credit': credit }).eq("account_name", account.account_name).select();
+             await supabase.from("Chart_Of_Accounts").update({ 'balance': balance }).eq("account_name", account.account_name).select();
       if (error) {
         console.error("Error inserting account log:", error);
       } else {
