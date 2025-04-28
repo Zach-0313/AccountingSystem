@@ -26,7 +26,7 @@ const AccountsJournalizing = () => {
         const fetchAccounts = async () => {
             const { data, error } = await supabase
                 .from("Chart_Of_Accounts")
-                .select("id, account_name, normal_side");
+                .select("id, account_number, account_name, normal_side");
             if (error) console.error(error);
             else setAccounts(data);
         };
@@ -90,6 +90,11 @@ const AccountsJournalizing = () => {
         const totals = calculateTotals(lines);
         return totals.debit === totals.credit;
     };
+    const getAccountDetails = (accountId) => {
+        const account = accounts.find((a) => a.id === parseInt(accountId));
+        return account ? { normalSide: account.normal_side, accountNumber: account.account_number } : {};
+    };
+    
 
     const submitEntries = async () => {
         setLoading(true);
@@ -105,7 +110,6 @@ const AccountsJournalizing = () => {
             }
     
             for (const entry of entries) {
-                // Upload file if exists
                 let attachmentUrl = null;
                 if (entry.file) {
                     const fileExt = entry.file.name.split('.').pop();
@@ -123,7 +127,6 @@ const AccountsJournalizing = () => {
                     attachmentUrl = storageData?.path;
                 }
     
-                // Insert Journal Entry
                 const { error: insertError } = await supabase
                     .from("Journal_Entries")
                     .insert([{
@@ -135,7 +138,6 @@ const AccountsJournalizing = () => {
     
                 if (insertError) throw new Error(insertError.message);
     
-                // 🔥 Fetch the latest inserted journal entry by description + attachment_url
                 const { data: fetchedEntry, error: fetchError } = await supabase
                     .from("Journal_Entries")
                     .select("journal_id")
@@ -148,16 +150,20 @@ const AccountsJournalizing = () => {
     
                 const entryId = fetchedEntry[0].journal_id;
     
-                // Insert Journal Entry Lines
-                const linesPayload = entry.lines.map((line) => ({
-                    journal_id: entryId,
-                    account_id: parseInt(line.account_id),
-                    debit: parseFloat(line.debit) || 0,
-                    credit: parseFloat(line.credit) || 0,
-                    created_at: new Date().toISOString(),
-                    attachment_url: attachmentUrl
-                }));
-    console.log("ADDING JOURNAL LINES ID:" + entryId);
+                // Insert Journal Entry Lines with account_number
+                const linesPayload = entry.lines.map((line) => {
+                    const accountDetails = getAccountDetails(line.account_id);
+                    console.log("ADDING JOURNAL LINES ID:" + entryId + "ACCOUNT NUMBER: " + accountDetails.accountNumber);
+                    return {
+                        journal_id: entryId,
+                        account_id: accountDetails.accountNumber,  // Use account_number
+                        debit: parseFloat(line.debit) || 0,
+                        credit: parseFloat(line.credit) || 0,
+                        created_at: new Date().toISOString(),
+                        attachment_url: attachmentUrl
+                    };
+                });
+    
                 const { error: linesError } = await supabase
                     .from("Journal_Entry_Lines")
                     .insert(linesPayload);
@@ -176,7 +182,7 @@ const AccountsJournalizing = () => {
             setLoading(false);
         }
     };
-
+    
     const allEntriesBalanced = entries.every(entry => {
         const totals = calculateTotals(entry.lines);
         return totals.debit === totals.credit;
