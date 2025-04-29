@@ -6,243 +6,134 @@ import { useParams } from "react-router-dom";
 const SUPABASE_URL = "https://tfgesyyngnxrvzckszfy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZ2VzeXluZ254cnZ6Y2tzemZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTc0ODEsImV4cCI6MjA1NDQ3MzQ4MX0.ScqA7yyTMrBjDqegXiuxpqJ9PYAkzAcgw2CEfpNmoT4";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-interface AccountDetails {
-    account_name: string;
-    account_id: string;
-    account_description: string;
-    normal_side: string;
-    account_category: string;
-    account_subcategory: string;
-    initial_balance: number;
-    debit: number;
-    credit: number;
-    balance: number;
-    date_added: string;
-    user_id: string;
-    order: string;
-    statement: string;
-    comment: string;
-}
-
-export default function AddAccountForm() {
-    const { userId } = useParams<{ userId: string }>();
-
-    const [hasAccount, setHasAccount] = useState<boolean | null>(null);
-    const [existingAccountNumber, setExistingAccountNumber] = useState<string>("");
-    const [accountDetails, setAccountDetails] = useState<AccountDetails>({
-        account_name: "",
-        account_id: Math.floor(1000 + Math.random() * 9000).toString(),
-        account_description: "",
-        normal_side: "",
-        account_category: "",
-        account_subcategory: "",
-        initial_balance: 0,
-        debit: 0,
-        credit: 0,
-        balance: 0,
-        date_added: new Date().toISOString(),
-        user_id: userId || "",
-        order: "",
-        statement: "",
-        comment: "",
-    });
-
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+// Sample categories and subcategories
+const catagories = {
+    "assets": ["Cash", "Accounts Receivable", "Inventory", "current assets", "assets"],
+    "liability": ["Accounts Payable", "Loans", "liability"],
+    "equity": ["Owner's Capital", "Retained Earnings", "equity"],
+    "revenue": ["Sales Revenue", "Service Revenue", "revenue"],
+    "expense": ["Rent Expense", "Utilities Expense", "Wages Expense", "expense"],
+  };
+  
+  export default function AccountForm() {
+    const [accountName, setAccountName] = useState("");
+    const [catagory, setCatagory] = useState("");
+    const [subCatagory, setSubCatagory] = useState("");
+    const [initialBalance, setInitialBalance] = useState<number>(0);
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            const { data, error } = await supabase.auth.getUser();
-
-            if (error) {
-                console.error("Error fetching user:", error.message);
-                setErrorMessage("Failed to load user info");
-            } else if (data?.user) {
-                setAccountDetails((prev) => ({
-                    ...prev,
-                    user_id: data.user.id,
-                }));
-            }
-        };
-
-        if (!userId) fetchUser();
-    }, [userId]);
-
-    // Fetch account data if user enters an existing account number
-    const fetchAccountData = async () => {
-        setLoading(true);
-        setErrorMessage(null);
-
-        const { data, error } = await supabase
-            .from("Chart_Of_Accounts")
-            .select("*")
-            .eq("account_id", existingAccountNumber)
-            .single();
-
-        if (error || !data) {
-            console.error("Account not found:", error?.message);
-            setErrorMessage("Account not found. You can add a new one.");
-            setAccountDetails((prev) => ({
-                ...prev,
-                account_id: existingAccountNumber,
-            }));
-        } else {
-            setAccountDetails(data);
-        }
-
-        setLoading(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
+  
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      setError(null);
+      setSuccess(false);
+  
+      const { error } = await supabase.from("Chart_Of_Accounts").insert([
+        {
+          account_name: accountName,
+          account_catagory: catagory,
+          account_subcatagory: subCatagory,
+          initial_balance: initialBalance,
+        },
+      ]);
+  
+      if (error) {
+        console.error(error);
+        setError(error.message);
+      } else {
+        setSuccess(true);
+        setAccountName("");
+        setCatagory("");
+        setSubCatagory("");
+        setInitialBalance(0);
+      }
+      setLoading(false);
     };
-
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setAccountDetails((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setErrorMessage(null);
-
-        const { data, error } = await supabase
-            .from("Chart_Of_Accounts")
-            .upsert([accountDetails]); // Upsert allows insert or update
-
-        if (error) {
-            console.error("Error saving account:", error.message);
-            setErrorMessage(error.message);
-        } else {
-            console.log("Account saved successfully:", data);
-            setAccountDetails({
-                ...accountDetails,
-                account_name: "",
-                account_number: Math.floor(1000 + Math.random() * 9000).toString(),
-                account_description: "",
-                normal_side: "",
-                account_category: "",
-                account_subcategory: "",
-                initial_balance: 0,
-                debit: 0,
-                credit: 0,
-                balance: 0,
-                order: "",
-                statement: "",
-                comment: "",
-            });
-        }
-    };
-
+  
     return (
-        <div className="account-form">
-            <h2>Add or Edit Account</h2>
-
-            {/* Step 1: Ask if the user has an account */}
-            {hasAccount === null && (
-                <div>
-                    <p>Do you have an existing account number?</p>
-                    <button onClick={() => setHasAccount(true)}>Yes</button>
-                    <button onClick={() => setHasAccount(false)}>No</button>
-                </div>
-            )}
-
-            {/* Step 2: If user has an account, ask for the number */}
-            {hasAccount === true && (
-                <div>
-                    <input
-                        type="text"
-                        placeholder="Enter Account Number"
-                        value={existingAccountNumber}
-                        onChange={(e) => setExistingAccountNumber(e.target.value)}
-                    />
-                    <button onClick={fetchAccountData} disabled={loading}>
-                        {loading ? "Loading..." : "Fetch Account"}
-                    </button>
-                    {errorMessage && <p className="error-message">{errorMessage}</p>}
-                </div>
-            )}
-
-            {/* Step 3: Show the form when user is adding/updating */}
-            {(hasAccount === false || accountDetails.account_name) && (
-                <form onSubmit={handleSubmit}>
-                    <p>Editing User ID: {userId || "Fetching..."}</p>
-
-                    <input
-                        type="text"
-                        name="account_name"
-                        placeholder="Account Name"
-                        value={accountDetails.account_name}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        type="text"
-                        name="account_id"
-                        placeholder="Account Number"
-                        value={accountDetails.account_number}
-                        readOnly
-                    />
-                    <input
-                        type="text"
-                        name="account_description"
-                        placeholder="Description"
-                        value={accountDetails.account_description}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        type="text"
-                        name="normal_side"
-                        placeholder="Normal Side (Debit/Credit)"
-                        value={accountDetails.normal_side}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        type="text"
-                        name="account_category"
-                        placeholder="Category"
-                        value={accountDetails.account_category}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        type="text"
-                        name="account_subcategory"
-                        placeholder="Subcategory"
-                        value={accountDetails.account_subcategory}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        type="number"
-                        name="initial_balance"
-                        placeholder="Initial Balance"
-                        value={accountDetails.initial_balance}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        type="text"
-                        name="order"
-                        placeholder="Order"
-                        value={accountDetails.order}
-                        onChange={handleChange}
-                    />
-                    <input
-                        type="text"
-                        name="statement"
-                        placeholder="Statement (IS/BS/RE)"
-                        value={accountDetails.statement}
-                        onChange={handleChange}
-                    />
-                    <textarea
-                        name="comment"
-                        placeholder="Comment"
-                        value={accountDetails.comment}
-                        onChange={handleChange}
-                    />
-                    <button type="submit">Save Account</button>
-                </form>
-            )}
-        </div>
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+        <h2 className="text-2xl font-bold mb-4">Add New Account</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Account Name */}
+          <div>
+            <label className="block mb-1 font-medium">Account Name</label>
+            <input
+              type="text"
+              className="w-full border rounded px-3 py-2"
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              required
+            />
+          </div>
+  
+          {/* Category */}
+          <div>
+            <label className="block mb-1 font-medium">Category</label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={catagory}
+              onChange={(e) => {
+                setCatagory(e.target.value);
+                setSubCatagory(""); // reset subcategory when category changes
+              }}
+              required
+            >
+              <option value="">Select Category</option>
+              {Object.keys(catagories).map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+  
+          {/* Subcategory */}
+          {catagory && (
+            <div>
+              <label className="block mb-1 font-medium">Subcategory</label>
+              <select
+                className="w-full border rounded px-3 py-2"
+                value={subCatagory}
+                onChange={(e) => setSubCatagory(e.target.value)}
+                required
+              >
+                <option value="">Select Subcategory</option>
+                {catagories[catagory as keyof typeof catagories].map((sub) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+  
+          {/* Initial Balance */}
+          <div>
+            <label className="block mb-1 font-medium">Initial Balance</label>
+            <input
+              type="number"
+              className="w-full border rounded px-3 py-2"
+              value={initialBalance}
+              onChange={(e) => setInitialBalance(parseFloat(e.target.value))}
+              required
+            />
+          </div>
+  
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Create Account"}
+          </button>
+  
+          {/* Status Messages */}
+          {error && <p className="text-red-600 mt-2">{error}</p>}
+          {success && <p className="text-green-600 mt-2">Account created successfully!</p>}
+        </form>
+      </div>
     );
-}
+  }
