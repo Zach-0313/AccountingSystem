@@ -29,13 +29,15 @@ const catagories = {
       setLoading(true);
       setError(null);
       setSuccess(false);
-  
+  let thisId:number = Math.floor(Math.random() * 10000); 
       const { error } = await supabase.from("Chart_Of_Accounts").insert([
         {
           account_name: accountName,
           account_catagory: catagory,
           account_subcatagory: subCatagory,
           initial_balance: initialBalance,
+          account_number : thisId,
+          account_id : thisId
         },
       ]);
   
